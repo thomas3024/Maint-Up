@@ -251,7 +251,8 @@ function reviveDates<T extends Record<string, unknown>>(
 }
 
 const loadClients = (): Client[] => {
-  const raw = localStorage.getItem(CLIENTS_KEY);
+  if (typeof window === "undefined") return sampleClients;
+  const raw = window.localStorage.getItem(CLIENTS_KEY);
   if (!raw) return sampleClients;
   try {
     const parsed: Client[] = JSON.parse(raw);
@@ -262,7 +263,8 @@ const loadClients = (): Client[] => {
 };
 
 const loadInvoices = (): Invoice[] => {
-  const raw = localStorage.getItem(INVOICES_KEY);
+  if (typeof window === "undefined") return sampleInvoices;
+  const raw = window.localStorage.getItem(INVOICES_KEY);
   if (!raw) return sampleInvoices;
   try {
     const parsed: Invoice[] = JSON.parse(raw);
@@ -273,7 +275,8 @@ const loadInvoices = (): Invoice[] => {
 };
 
 const loadCosts = (): Cost[] => {
-  const raw = localStorage.getItem(COSTS_KEY);
+  if (typeof window === "undefined") return sampleCosts;
+  const raw = window.localStorage.getItem(COSTS_KEY);
   if (!raw) return sampleCosts;
   try {
     const parsed: Cost[] = JSON.parse(raw);
@@ -300,15 +303,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const [costs, setCosts] = useState<Cost[]>(loadCosts());
 
   useEffect(() => {
-    localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients));
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients));
+    }
   }, [clients]);
 
   useEffect(() => {
-    localStorage.setItem(INVOICES_KEY, JSON.stringify(invoices));
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(INVOICES_KEY, JSON.stringify(invoices));
+    }
   }, [invoices]);
 
   useEffect(() => {
-    localStorage.setItem(COSTS_KEY, JSON.stringify(costs));
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(COSTS_KEY, JSON.stringify(costs));
+    }
   }, [costs]);
 
   // Client operations
