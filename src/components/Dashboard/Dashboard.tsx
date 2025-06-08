@@ -31,10 +31,10 @@ const Dashboard: React.FC = () => {
   const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto text-gray-900 dark:text-gray-100">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Tableau de Bord</h1>
-        <p className="text-gray-600">Vue d'ensemble de votre activité</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Tableau de Bord</h1>
+        <p className="text-gray-600 dark:text-gray-400">Vue d'ensemble de votre activité</p>
       </div>
 
       {/* Stats Cards */}
@@ -78,15 +78,15 @@ const Dashboard: React.FC = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Évolution du Chiffre d'Affaires
           </h2>
           <RevenueChart />
         </div>
-        
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Analyse des Bénéfices
           </h2>
           <ProfitChart />
@@ -94,12 +94,12 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Clients Overview */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Aperçu des Clients
           </h2>
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
             <Users className="h-4 w-4" />
             <span>{clients.length} client(s) actif(s)</span>
           </div>
