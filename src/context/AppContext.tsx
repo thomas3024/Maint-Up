@@ -1,30 +1,54 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Client, Invoice, Cost, User, MonthlyData, AnnualReport, MonthlyClientData } from '../types';
-import { format, subMonths, getMonth, getYear } from 'date-fns';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
+import {
+  Client,
+  Invoice,
+  Cost,
+  User,
+  MonthlyData,
+  AnnualReport,
+  MonthlyClientData,
+} from "../types";
+import { format, subMonths, getMonth, getYear } from "date-fns";
 
 interface AppContextType {
   // User management
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
-  
+
   // Data management
   clients: Client[];
   invoices: Invoice[];
   costs: Cost[];
-  
+
   // CRUD operations
-  addClient: (client: Omit<Client, 'id' | 'createdAt' | 'totalInvoices' | 'totalCosts' | 'totalProfit' | 'monthlyData'>) => void;
+  addClient: (
+    client: Omit<
+      Client,
+      | "id"
+      | "createdAt"
+      | "totalInvoices"
+      | "totalCosts"
+      | "totalProfit"
+      | "monthlyData"
+    >,
+  ) => void;
   updateClient: (id: string, client: Partial<Client>) => void;
   deleteClient: (id: string) => void;
-  
-  addInvoice: (invoice: Omit<Invoice, 'id' | 'amountTTC'>) => void;
+
+  addInvoice: (invoice: Omit<Invoice, "id" | "amountTTC">) => void;
   updateInvoice: (id: string, invoice: Partial<Invoice>) => void;
   deleteInvoice: (id: string) => void;
-  
-  addCost: (cost: Omit<Cost, 'id'>) => void;
+
+  addCost: (cost: Omit<Cost, "id">) => void;
   updateCost: (id: string, cost: Partial<Cost>) => void;
   deleteCost: (id: string) => void;
-  
+
   // Analytics
   getMonthlyData: () => MonthlyData[];
   getTotalRevenue: () => number;
@@ -41,182 +65,264 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useAppContext must be used within an AppProvider');
+    throw new Error("useAppContext must be used within an AppProvider");
   }
   return context;
 };
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+// --- Persistence helpers ---
+const CLIENTS_KEY = "maintup_clients";
+const INVOICES_KEY = "maintup_invoices";
+const COSTS_KEY = "maintup_costs";
+
+const sampleClients: Client[] = [
+  {
+    id: "1",
+    name: "Entreprise Alpha",
+    email: "contact@alpha.fr",
+    phone: "01 23 45 67 89",
+    address: "123 Rue de la Paix, 75001 Paris",
+    createdAt: new Date("2024-01-15"),
+    totalInvoices: 18000,
+    totalCosts: 9500,
+    totalProfit: 8500,
+    monthlyData: [],
+  },
+  {
+    id: "2",
+    name: "Société Beta",
+    email: "info@beta.fr",
+    phone: "01 98 76 54 32",
+    address: "456 Avenue des Champs, 69000 Lyon",
+    createdAt: new Date("2024-02-20"),
+    totalInvoices: 32000,
+    totalCosts: 18000,
+    totalProfit: 14000,
+    monthlyData: [],
+  },
+  {
+    id: "3",
+    name: "Groupe Gamma",
+    email: "contact@gamma.fr",
+    phone: "01 55 44 33 22",
+    address: "789 Boulevard Haussmann, 75008 Paris",
+    createdAt: new Date("2024-03-10"),
+    totalInvoices: 25000,
+    totalCosts: 12000,
+    totalProfit: 13000,
+    monthlyData: [],
+  },
+];
+
+const sampleInvoices: Invoice[] = [
+  {
+    id: "1",
+    clientId: "1",
+    clientName: "Entreprise Alpha",
+    number: "INV-2024-001",
+    amountHT: 5000,
+    tva: 1000,
+    amountTTC: 6000,
+    status: "paid",
+    issueDate: new Date("2024-01-15"),
+    dueDate: new Date("2024-02-15"),
+    description: "Maintenance préventive Q1",
+  },
+  {
+    id: "2",
+    clientId: "1",
+    clientName: "Entreprise Alpha",
+    number: "INV-2024-002",
+    amountHT: 7500,
+    tva: 1500,
+    amountTTC: 9000,
+    status: "pending",
+    issueDate: new Date("2024-02-01"),
+    dueDate: new Date("2024-03-01"),
+    description: "Réparation équipement industriel",
+  },
+  {
+    id: "3",
+    clientId: "2",
+    clientName: "Société Beta",
+    number: "INV-2024-003",
+    amountHT: 12000,
+    tva: 2400,
+    amountTTC: 14400,
+    status: "paid",
+    issueDate: new Date("2024-01-20"),
+    dueDate: new Date("2024-02-20"),
+    description: "Installation nouvelle ligne de production",
+  },
+  {
+    id: "4",
+    clientId: "2",
+    clientName: "Société Beta",
+    number: "INV-2024-004",
+    amountHT: 8000,
+    tva: 1600,
+    amountTTC: 9600,
+    status: "paid",
+    issueDate: new Date("2024-03-15"),
+    dueDate: new Date("2024-04-15"),
+    description: "Maintenance trimestrielle",
+  },
+  {
+    id: "5",
+    clientId: "3",
+    clientName: "Groupe Gamma",
+    number: "INV-2024-005",
+    amountHT: 15000,
+    tva: 3000,
+    amountTTC: 18000,
+    status: "paid",
+    issueDate: new Date("2024-03-10"),
+    dueDate: new Date("2024-04-10"),
+    description: "Audit et optimisation système",
+  },
+];
+
+const sampleCosts: Cost[] = [
+  {
+    id: "1",
+    clientId: "1",
+    clientName: "Entreprise Alpha",
+    invoiceId: "1",
+    description: "Salaire technicien",
+    amount: 2500,
+    category: "salaries",
+    date: new Date("2024-01-16"),
+  },
+  {
+    id: "2",
+    clientId: "1",
+    clientName: "Entreprise Alpha",
+    invoiceId: "2",
+    description: "Pièces de rechange",
+    amount: 1800,
+    category: "materials",
+    date: new Date("2024-02-02"),
+  },
+  {
+    id: "3",
+    clientId: "2",
+    clientName: "Société Beta",
+    invoiceId: "3",
+    description: "Sous-traitance spécialisée",
+    amount: 4000,
+    category: "subcontracting",
+    date: new Date("2024-01-21"),
+  },
+  {
+    id: "4",
+    clientId: "2",
+    clientName: "Société Beta",
+    invoiceId: "4",
+    description: "Charges sociales",
+    amount: 1200,
+    category: "charges",
+    date: new Date("2024-03-16"),
+  },
+  {
+    id: "5",
+    clientId: "3",
+    clientName: "Groupe Gamma",
+    invoiceId: "5",
+    description: "Équipement diagnostic",
+    amount: 3500,
+    category: "materials",
+    date: new Date("2024-03-11"),
+  },
+];
+
+function reviveDates<T extends Record<string, unknown>>(
+  data: T,
+  keys: (keyof T)[],
+): T {
+  keys.forEach((key) => {
+    const value = data[key];
+    if (typeof value === "string") {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore-next-line
+      data[key] = new Date(value);
+    }
+  });
+  return data;
+}
+
+const loadClients = (): Client[] => {
+  const raw = localStorage.getItem(CLIENTS_KEY);
+  if (!raw) return sampleClients;
+  try {
+    const parsed: Client[] = JSON.parse(raw);
+    return parsed.map((c) => reviveDates(c, ["createdAt"]));
+  } catch {
+    return sampleClients;
+  }
+};
+
+const loadInvoices = (): Invoice[] => {
+  const raw = localStorage.getItem(INVOICES_KEY);
+  if (!raw) return sampleInvoices;
+  try {
+    const parsed: Invoice[] = JSON.parse(raw);
+    return parsed.map((inv) => reviveDates(inv, ["issueDate", "dueDate"]));
+  } catch {
+    return sampleInvoices;
+  }
+};
+
+const loadCosts = (): Cost[] => {
+  const raw = localStorage.getItem(COSTS_KEY);
+  if (!raw) return sampleCosts;
+  try {
+    const parsed: Cost[] = JSON.parse(raw);
+    return parsed.map((cost) => reviveDates(cost, ["date"]));
+  } catch {
+    return sampleCosts;
+  }
+};
+
+export const AppProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [currentUser, setCurrentUser] = useState<User | null>({
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@maintup.fr',
-    role: 'admin'
+    id: "1",
+    name: "Admin User",
+    email: "admin@maintup.fr",
+    role: "admin",
   });
 
-  // Sample data with enhanced structure
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: '1',
-      name: 'Entreprise Alpha',
-      email: 'contact@alpha.fr',
-      phone: '01 23 45 67 89',
-      address: '123 Rue de la Paix, 75001 Paris',
-      createdAt: new Date('2024-01-15'),
-      totalInvoices: 18000,
-      totalCosts: 9500,
-      totalProfit: 8500,
-      monthlyData: []
-    },
-    {
-      id: '2',
-      name: 'Société Beta',
-      email: 'info@beta.fr',
-      phone: '01 98 76 54 32',
-      address: '456 Avenue des Champs, 69000 Lyon',
-      createdAt: new Date('2024-02-20'),
-      totalInvoices: 32000,
-      totalCosts: 18000,
-      totalProfit: 14000,
-      monthlyData: []
-    },
-    {
-      id: '3',
-      name: 'Groupe Gamma',
-      email: 'contact@gamma.fr',
-      phone: '01 55 44 33 22',
-      address: '789 Boulevard Haussmann, 75008 Paris',
-      createdAt: new Date('2024-03-10'),
-      totalInvoices: 25000,
-      totalCosts: 12000,
-      totalProfit: 13000,
-      monthlyData: []
-    }
-  ]);
+  const [clients, setClients] = useState<Client[]>(loadClients());
 
-  const [invoices, setInvoices] = useState<Invoice[]>([
-    {
-      id: '1',
-      clientId: '1',
-      clientName: 'Entreprise Alpha',
-      number: 'INV-2024-001',
-      amountHT: 5000,
-      tva: 1000,
-      amountTTC: 6000,
-      status: 'paid',
-      issueDate: new Date('2024-01-15'),
-      dueDate: new Date('2024-02-15'),
-      description: 'Maintenance préventive Q1'
-    },
-    {
-      id: '2',
-      clientId: '1',
-      clientName: 'Entreprise Alpha',
-      number: 'INV-2024-002',
-      amountHT: 7500,
-      tva: 1500,
-      amountTTC: 9000,
-      status: 'pending',
-      issueDate: new Date('2024-02-01'),
-      dueDate: new Date('2024-03-01'),
-      description: 'Réparation équipement industriel'
-    },
-    {
-      id: '3',
-      clientId: '2',
-      clientName: 'Société Beta',
-      number: 'INV-2024-003',
-      amountHT: 12000,
-      tva: 2400,
-      amountTTC: 14400,
-      status: 'paid',
-      issueDate: new Date('2024-01-20'),
-      dueDate: new Date('2024-02-20'),
-      description: 'Installation nouvelle ligne de production'
-    },
-    {
-      id: '4',
-      clientId: '2',
-      clientName: 'Société Beta',
-      number: 'INV-2024-004',
-      amountHT: 8000,
-      tva: 1600,
-      amountTTC: 9600,
-      status: 'paid',
-      issueDate: new Date('2024-03-15'),
-      dueDate: new Date('2024-04-15'),
-      description: 'Maintenance trimestrielle'
-    },
-    {
-      id: '5',
-      clientId: '3',
-      clientName: 'Groupe Gamma',
-      number: 'INV-2024-005',
-      amountHT: 15000,
-      tva: 3000,
-      amountTTC: 18000,
-      status: 'paid',
-      issueDate: new Date('2024-03-10'),
-      dueDate: new Date('2024-04-10'),
-      description: 'Audit et optimisation système'
-    }
-  ]);
+  const [invoices, setInvoices] = useState<Invoice[]>(loadInvoices());
 
-  const [costs, setCosts] = useState<Cost[]>([
-    {
-      id: '1',
-      clientId: '1',
-      clientName: 'Entreprise Alpha',
-      invoiceId: '1',
-      description: 'Salaire technicien',
-      amount: 2500,
-      category: 'salaries',
-      date: new Date('2024-01-16')
-    },
-    {
-      id: '2',
-      clientId: '1',
-      clientName: 'Entreprise Alpha',
-      invoiceId: '2',
-      description: 'Pièces de rechange',
-      amount: 1800,
-      category: 'materials',
-      date: new Date('2024-02-02')
-    },
-    {
-      id: '3',
-      clientId: '2',
-      clientName: 'Société Beta',
-      invoiceId: '3',
-      description: 'Sous-traitance spécialisée',
-      amount: 4000,
-      category: 'subcontracting',
-      date: new Date('2024-01-21')
-    },
-    {
-      id: '4',
-      clientId: '2',
-      clientName: 'Société Beta',
-      invoiceId: '4',
-      description: 'Charges sociales',
-      amount: 1200,
-      category: 'charges',
-      date: new Date('2024-03-16')
-    },
-    {
-      id: '5',
-      clientId: '3',
-      clientName: 'Groupe Gamma',
-      invoiceId: '5',
-      description: 'Équipement diagnostic',
-      amount: 3500,
-      category: 'materials',
-      date: new Date('2024-03-11')
-    }
-  ]);
+  const [costs, setCosts] = useState<Cost[]>(loadCosts());
+
+  useEffect(() => {
+    localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients));
+  }, [clients]);
+
+  useEffect(() => {
+    localStorage.setItem(INVOICES_KEY, JSON.stringify(invoices));
+  }, [invoices]);
+
+  useEffect(() => {
+    localStorage.setItem(COSTS_KEY, JSON.stringify(costs));
+  }, [costs]);
 
   // Client operations
-  const addClient = (clientData: Omit<Client, 'id' | 'createdAt' | 'totalInvoices' | 'totalCosts' | 'totalProfit' | 'monthlyData'>) => {
+  const addClient = (
+    clientData: Omit<
+      Client,
+      | "id"
+      | "createdAt"
+      | "totalInvoices"
+      | "totalCosts"
+      | "totalProfit"
+      | "monthlyData"
+    >,
+  ) => {
     const newClient: Client = {
       ...clientData,
       id: Date.now().toString(),
@@ -224,84 +330,94 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       totalInvoices: 0,
       totalCosts: 0,
       totalProfit: 0,
-      monthlyData: []
+      monthlyData: [],
     };
-    setClients(prev => [...prev, newClient]);
+    setClients((prev) => [...prev, newClient]);
   };
 
   const updateClient = (id: string, updates: Partial<Client>) => {
-    setClients(prev => prev.map(client => 
-      client.id === id ? { ...client, ...updates } : client
-    ));
+    setClients((prev) =>
+      prev.map((client) =>
+        client.id === id ? { ...client, ...updates } : client,
+      ),
+    );
   };
 
   const deleteClient = (id: string) => {
-    setClients(prev => prev.filter(client => client.id !== id));
-    setInvoices(prev => prev.filter(invoice => invoice.clientId !== id));
-    setCosts(prev => prev.filter(cost => cost.clientId !== id));
+    setClients((prev) => prev.filter((client) => client.id !== id));
+    setInvoices((prev) => prev.filter((invoice) => invoice.clientId !== id));
+    setCosts((prev) => prev.filter((cost) => cost.clientId !== id));
   };
 
   // Invoice operations
-  const addInvoice = (invoiceData: Omit<Invoice, 'id' | 'amountTTC'>) => {
+  const addInvoice = (invoiceData: Omit<Invoice, "id" | "amountTTC">) => {
     const newInvoice: Invoice = {
       ...invoiceData,
       id: Date.now().toString(),
-      amountTTC: invoiceData.amountHT + invoiceData.tva
+      amountTTC: invoiceData.amountHT + invoiceData.tva,
     };
-    setInvoices(prev => [...prev, newInvoice]);
+    setInvoices((prev) => [...prev, newInvoice]);
   };
 
   const updateInvoice = (id: string, updates: Partial<Invoice>) => {
-    setInvoices(prev => prev.map(invoice => {
-      if (invoice.id === id) {
-        const updated = { ...invoice, ...updates };
-        if (updates.amountHT !== undefined || updates.tva !== undefined) {
-          updated.amountTTC = (updates.amountHT || invoice.amountHT) + (updates.tva || invoice.tva);
+    setInvoices((prev) =>
+      prev.map((invoice) => {
+        if (invoice.id === id) {
+          const updated = { ...invoice, ...updates };
+          if (updates.amountHT !== undefined || updates.tva !== undefined) {
+            updated.amountTTC =
+              (updates.amountHT || invoice.amountHT) +
+              (updates.tva || invoice.tva);
+          }
+          return updated;
         }
-        return updated;
-      }
-      return invoice;
-    }));
+        return invoice;
+      }),
+    );
   };
 
   const deleteInvoice = (id: string) => {
-    setInvoices(prev => prev.filter(invoice => invoice.id !== id));
-    setCosts(prev => prev.filter(cost => cost.invoiceId !== id));
+    setInvoices((prev) => prev.filter((invoice) => invoice.id !== id));
+    setCosts((prev) => prev.filter((cost) => cost.invoiceId !== id));
   };
 
   // Cost operations
-  const addCost = (costData: Omit<Cost, 'id'>) => {
+  const addCost = (costData: Omit<Cost, "id">) => {
     const newCost: Cost = {
       ...costData,
-      id: Date.now().toString()
+      id: Date.now().toString(),
     };
-    setCosts(prev => [...prev, newCost]);
+    setCosts((prev) => [...prev, newCost]);
   };
 
   const updateCost = (id: string, updates: Partial<Cost>) => {
-    setCosts(prev => prev.map(cost => 
-      cost.id === id ? { ...cost, ...updates } : cost
-    ));
+    setCosts((prev) =>
+      prev.map((cost) => (cost.id === id ? { ...cost, ...updates } : cost)),
+    );
   };
 
   const deleteCost = (id: string) => {
-    setCosts(prev => prev.filter(cost => cost.id !== id));
+    setCosts((prev) => prev.filter((cost) => cost.id !== id));
   };
 
   // Analytics
   const getMonthlyData = (): MonthlyData[] => {
     const months = Array.from({ length: 12 }, (_, i) => {
       const date = subMonths(new Date(), 11 - i);
-      return format(date, 'MMM yyyy');
+      return format(date, "MMM yyyy");
     });
 
-    return months.map(month => {
+    return months.map((month) => {
       const monthRevenue = invoices
-        .filter(inv => inv.status === 'paid' && format(inv.issueDate, 'MMM yyyy') === month)
+        .filter(
+          (inv) =>
+            inv.status === "paid" &&
+            format(inv.issueDate, "MMM yyyy") === month,
+        )
         .reduce((sum, inv) => sum + inv.amountHT, 0);
-      
+
       const monthCosts = costs
-        .filter(cost => format(cost.date, 'MMM yyyy') === month)
+        .filter((cost) => format(cost.date, "MMM yyyy") === month)
         .reduce((sum, cost) => sum + cost.amount, 0);
 
       const profit = monthRevenue - monthCosts;
@@ -312,13 +428,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         revenue: monthRevenue,
         costs: monthCosts,
         profit,
-        margin
+        margin,
       };
     });
   };
 
   const getTotalRevenue = () => {
-    return invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.amountHT, 0);
+    return invoices
+      .filter((inv) => inv.status === "paid")
+      .reduce((sum, inv) => sum + inv.amountHT, 0);
   };
 
   const getTotalCosts = () => {
@@ -330,12 +448,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const getClientProfit = (clientId: string) => {
-    const clientInvoices = invoices.filter(inv => inv.clientId === clientId && inv.status === 'paid');
-    const clientCosts = costs.filter(cost => cost.clientId === clientId);
-    
+    const clientInvoices = invoices.filter(
+      (inv) => inv.clientId === clientId && inv.status === "paid",
+    );
+    const clientCosts = costs.filter((cost) => cost.clientId === clientId);
+
     const revenue = clientInvoices.reduce((sum, inv) => sum + inv.amountHT, 0);
     const totalCosts = clientCosts.reduce((sum, cost) => sum + cost.amount, 0);
-    
+
     return revenue - totalCosts;
   };
 
@@ -343,27 +463,35 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const months = Array.from({ length: 12 }, (_, i) => {
       const date = subMonths(new Date(), 11 - i);
       return {
-        month: format(date, 'MMM'),
-        year: getYear(date)
+        month: format(date, "MMM"),
+        year: getYear(date),
       };
     });
 
     return months.map(({ month, year }) => {
       const monthKey = `${month} ${year}`;
-      
-      const clientInvoices = invoices.filter(inv => 
-        inv.clientId === clientId && 
-        inv.status === 'paid' && 
-        format(inv.issueDate, 'MMM yyyy') === monthKey
-      );
-      
-      const clientCosts = costs.filter(cost => 
-        cost.clientId === clientId && 
-        format(cost.date, 'MMM yyyy') === monthKey
+
+      const clientInvoices = invoices.filter(
+        (inv) =>
+          inv.clientId === clientId &&
+          inv.status === "paid" &&
+          format(inv.issueDate, "MMM yyyy") === monthKey,
       );
 
-      const revenue = clientInvoices.reduce((sum, inv) => sum + inv.amountHT, 0);
-      const costsTotal = clientCosts.reduce((sum, cost) => sum + cost.amount, 0);
+      const clientCosts = costs.filter(
+        (cost) =>
+          cost.clientId === clientId &&
+          format(cost.date, "MMM yyyy") === monthKey,
+      );
+
+      const revenue = clientInvoices.reduce(
+        (sum, inv) => sum + inv.amountHT,
+        0,
+      );
+      const costsTotal = clientCosts.reduce(
+        (sum, cost) => sum + cost.amount,
+        0,
+      );
       const profit = revenue - costsTotal;
       const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
 
@@ -374,27 +502,38 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         costs: costsTotal,
         profit,
         margin,
-        invoicesCount: clientInvoices.length
+        invoicesCount: clientInvoices.length,
       };
     });
   };
 
   const getAnnualReport = (year: number): AnnualReport => {
-    const yearInvoices = invoices.filter(inv => 
-      inv.status === 'paid' && getYear(inv.issueDate) === year
+    const yearInvoices = invoices.filter(
+      (inv) => inv.status === "paid" && getYear(inv.issueDate) === year,
     );
-    const yearCosts = costs.filter(cost => getYear(cost.date) === year);
+    const yearCosts = costs.filter((cost) => getYear(cost.date) === year);
 
-    const totalRevenue = yearInvoices.reduce((sum, inv) => sum + inv.amountHT, 0);
+    const totalRevenue = yearInvoices.reduce(
+      (sum, inv) => sum + inv.amountHT,
+      0,
+    );
     const totalCosts = yearCosts.reduce((sum, cost) => sum + cost.amount, 0);
     const totalProfit = totalRevenue - totalCosts;
-    const averageMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+    const averageMargin =
+      totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
 
-    const clientsData = clients.map(client => {
-      const clientInvoices = yearInvoices.filter(inv => inv.clientId === client.id);
-      const clientCosts = yearCosts.filter(cost => cost.clientId === client.id);
-      
-      const revenue = clientInvoices.reduce((sum, inv) => sum + inv.amountHT, 0);
+    const clientsData = clients.map((client) => {
+      const clientInvoices = yearInvoices.filter(
+        (inv) => inv.clientId === client.id,
+      );
+      const clientCosts = yearCosts.filter(
+        (cost) => cost.clientId === client.id,
+      );
+
+      const revenue = clientInvoices.reduce(
+        (sum, inv) => sum + inv.amountHT,
+        0,
+      );
       const costs = clientCosts.reduce((sum, cost) => sum + cost.amount, 0);
       const profit = revenue - costs;
       const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
@@ -406,19 +545,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         costs,
         profit,
         margin,
-        invoicesCount: clientInvoices.length
+        invoicesCount: clientInvoices.length,
       };
     });
 
     const monthlyBreakdown = Array.from({ length: 12 }, (_, i) => {
-      const month = format(new Date(year, i, 1), 'MMM yyyy');
-      
+      const month = format(new Date(year, i, 1), "MMM yyyy");
+
       const monthRevenue = yearInvoices
-        .filter(inv => format(inv.issueDate, 'MMM yyyy') === month)
+        .filter((inv) => format(inv.issueDate, "MMM yyyy") === month)
         .reduce((sum, inv) => sum + inv.amountHT, 0);
-      
+
       const monthCosts = yearCosts
-        .filter(cost => format(cost.date, 'MMM yyyy') === month)
+        .filter((cost) => format(cost.date, "MMM yyyy") === month)
         .reduce((sum, cost) => sum + cost.amount, 0);
 
       const profit = monthRevenue - monthCosts;
@@ -429,7 +568,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         revenue: monthRevenue,
         costs: monthCosts,
         profit,
-        margin
+        margin,
       };
     });
 
@@ -440,14 +579,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       totalProfit,
       averageMargin,
       clientsData,
-      monthlyBreakdown
+      monthlyBreakdown,
     };
   };
 
   const exportToPDF = async () => {
     // This would implement PDF export functionality
     // For now, we'll show an alert
-    alert('Fonctionnalité d\'export PDF en cours de développement');
+    alert("Fonctionnalité d'export PDF en cours de développement");
   };
 
   const value: AppContextType = {
@@ -472,12 +611,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     getClientProfit,
     getClientMonthlyData,
     getAnnualReport,
-    exportToPDF
+    exportToPDF,
   };
 
-  return (
-    <AppContext.Provider value={value}>
-      {children}
-    </AppContext.Provider>
-  );
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
