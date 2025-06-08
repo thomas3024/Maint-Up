@@ -30,6 +30,12 @@ ChartJS.register(
 const AnnualReport: React.FC = () => {
   const { getAnnualReport, exportToPDF } = useAppContext();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [pdfLink, setPdfLink] = useState<string | null>(null);
+
+  const handleExport = async () => {
+    const url = await exportToPDF();
+    if (url) setPdfLink(url);
+  };
   
   const report = getAnnualReport(selectedYear);
   const currentYear = new Date().getFullYear();
@@ -171,7 +177,7 @@ const AnnualReport: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div id="annual-report" className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">📊 Bilan Annuel</h1>
@@ -190,12 +196,22 @@ const AnnualReport: React.FC = () => {
           </select>
           
           <button
-            onClick={exportToPDF}
+            onClick={handleExport}
             className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
           >
             <Download className="h-4 w-4" />
-            <span>Export PDF</span>
+            <span>Télécharger PDF</span>
           </button>
+          {pdfLink && (
+            <a
+              href={pdfLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline text-sm"
+            >
+              Ouvrir le PDF
+            </a>
+          )}
         </div>
       </div>
 
