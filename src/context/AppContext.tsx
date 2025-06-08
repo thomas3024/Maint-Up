@@ -14,7 +14,7 @@ import {
   AnnualReport,
   MonthlyClientData,
 } from "../types";
-import { format, subMonths, getMonth, getYear } from "date-fns";
+import { format, subMonths, getYear } from "date-fns";
 
 interface AppContextType {
   // User management
@@ -243,7 +243,7 @@ function reviveDates<T extends Record<string, unknown>>(
     const value = data[key];
     if (typeof value === "string") {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore-next-line
+      // @ts-ignore
       data[key] = new Date(value);
     }
   });
