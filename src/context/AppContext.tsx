@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { Client, Invoice, Cost, User, MonthlyData, AnnualReport, MonthlyClientData } from '../types';
 import { format, subMonths, getMonth, getYear } from 'date-fns';
 
@@ -33,7 +35,7 @@ interface AppContextType {
   getClientProfit: (clientId: string) => number;
   getClientMonthlyData: (clientId: string) => MonthlyClientData[];
   getAnnualReport: (year: number) => AnnualReport;
-  exportToPDF: () => void;
+  exportToPDF: () => Promise<string | void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -444,10 +446,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
   };
 
-  const exportToPDF = async () => {
-    // This would implement PDF export functionality
-    // For now, we'll show an alert
-    alert('Fonctionnalité d\'export PDF en cours de développement');
+  const exportToPDF = async (): Promise<string | void> => {
+    const element = document.getElementById('annual-report');
+    if (!element) return;
+
+    const canvas = await html2canvas(element, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: [canvas.width, canvas.height]
+    });
+
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    const pdfUrl = pdf.output('bloburl');
+    return pdfUrl;
   };
 
   const value: AppContextType = {
