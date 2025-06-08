@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppProvider } from './context/AppContext';
 import Header from './components/Layout/Header';
 import Sidebar from './components/Layout/Sidebar';
@@ -12,6 +12,19 @@ import AnnualReport from './components/Reports/AnnualReport';
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const stored = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (stored) return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const renderActiveView = () => {
     switch (activeView) {
@@ -34,8 +47,12 @@ function App() {
 
   return (
     <AppProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <Header
+          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+          theme={theme}
+          onThemeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        />
         
         <div className="flex">
           <Sidebar

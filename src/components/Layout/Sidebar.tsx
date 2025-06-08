@@ -30,7 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeView, onViewCh
     <>
       {/* Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={onClose}
         />
@@ -38,14 +38,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeView, onViewCh
 
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out
+        fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:shadow-none
       `}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 lg:hidden">
-          <h2 className="text-xl font-bold text-gray-900">Menu</h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100">
-            <X className="h-5 w-5 text-gray-600" />
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 lg:hidden">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Menu</h2>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+            <X className="h-5 w-5 text-gray-600 dark:text-gray-300" />
           </button>
         </div>
 
@@ -64,12 +64,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeView, onViewCh
                     }}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-500'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-primary-50 dark:bg-gray-700 text-primary-700 border-r-2 border-primary-500'
+                        : 'text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <Icon className={`h-5 w-5 ${isActive ? 'text-primary-600' : item.color}`} />
-                    <span className="font-medium">{item.label}</span>
+                    <Icon className={`h-5 w-5 ${isActive ? 'text-primary-600' : item.color} dark:text-gray-300`} />
+                    <span className="font-medium dark:text-gray-100">{item.label}</span>
                   </button>
                 </li>
               );
@@ -78,9 +78,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeView, onViewCh
         </nav>
 
         <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-pastel-blue p-4 rounded-lg">
-            <h3 className="font-semibold text-gray-900 mb-1">Maint Up Pro</h3>
-            <p className="text-sm text-gray-600">
+          <div className="bg-pastel-blue dark:bg-gray-700 p-4 rounded-lg">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Maint Up Pro</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Comptabilité moderne et intuitive
             </p>
           </div>
