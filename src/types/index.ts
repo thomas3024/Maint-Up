@@ -8,7 +8,6 @@ export interface Client {
   totalInvoices: number;
   totalCosts: number;
   totalProfit: number;
-  monthlyData: MonthlyClientData[];
 }
 
 export interface Invoice {
