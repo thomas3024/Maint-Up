@@ -177,7 +177,7 @@ const AnnualReport: React.FC = () => {
   };
 
   return (
-    <div id="annual-report" className="p-6 max-w-7xl mx-auto">
+    <div id="annual-report" className="p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">📊 Bilan Annuel</h1>

@@ -52,6 +52,8 @@ function App() {
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
           theme={theme}
           onThemeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          activeView={activeView}
+          onViewChange={setActiveView}
         />
         
         <div className="flex">
@@ -62,7 +64,7 @@ function App() {
             onViewChange={setActiveView}
           />
           
-          <main className="flex-1 lg:ml-64">
+          <main className="flex-1 lg:ml-64 mx-auto max-w-7xl p-4">
             {renderActiveView()}
           </main>
         </div>

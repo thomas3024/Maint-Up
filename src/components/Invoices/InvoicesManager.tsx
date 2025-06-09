@@ -60,9 +60,9 @@ const InvoicesManager: React.FC = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'paid': return '🟩 Payée';
-      case 'pending': return '🟥 En attente';
-      case 'overdue': return '🟥 En retard';
+      case 'paid': return 'Payée';
+      case 'pending': return 'En attente';
+      case 'overdue': return 'En retard';
       default: return status;
     }
   };
@@ -73,10 +73,10 @@ const InvoicesManager: React.FC = () => {
   const paidAmountHT = filteredInvoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.amountHT, 0);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">🟥 Gestion des Factures</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Factures</h1>
           <div className="text-gray-600 space-y-1">
             <p>{filteredInvoices.length} facture(s)</p>
             <p>Total HT: {totalAmountHT.toLocaleString('fr-FR')} € • TVA: {totalTVA.toLocaleString('fr-FR')} € • TTC: {totalTTC.toLocaleString('fr-FR')} €</p>
@@ -157,9 +157,9 @@ const InvoicesManager: React.FC = () => {
           className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         >
           <option value="all">Tous les statuts</option>
-          <option value="pending">🟥 En attente</option>
-          <option value="paid">🟩 Payées</option>
-          <option value="overdue">🟥 En retard</option>
+          <option value="pending">En attente</option>
+          <option value="paid">Payées</option>
+          <option value="overdue">En retard</option>
         </select>
       </div>
 
@@ -231,9 +231,9 @@ const InvoicesManager: React.FC = () => {
                         onChange={(e) => handleStatusChange(invoice.id, e.target.value as any)}
                         className={`text-xs font-medium px-3 py-1 rounded-full border-0 ${getStatusColor(invoice.status)}`}
                       >
-                        <option value="pending">🟥 En attente</option>
-                        <option value="paid">🟩 Payée</option>
-                        <option value="overdue">🟥 En retard</option>
+                        <option value="pending">En attente</option>
+                        <option value="paid">Payée</option>
+                        <option value="overdue">En retard</option>
                       </select>
                     ) : (
                       <span className={`inline-flex items-center space-x-1 text-xs font-medium px-3 py-1 rounded-full ${getStatusColor(invoice.status)}`}>

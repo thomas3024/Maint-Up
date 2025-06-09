@@ -6,9 +6,17 @@ interface HeaderProps {
   onMenuToggle: () => void;
   theme: 'light' | 'dark';
   onThemeToggle: () => void;
+  activeView: string;
+  onViewChange: (view: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle, theme, onThemeToggle }) => {
+const Header: React.FC<HeaderProps> = ({
+  onMenuToggle,
+  theme,
+  onThemeToggle,
+  activeView,
+  onViewChange
+}) => {
   const { currentUser, setCurrentUser } = useAppContext();
 
   const handleRoleToggle = () => {
@@ -61,6 +69,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, theme, onThemeToggle }) =
               <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             )}
           </button>
+
+          <select
+            value={activeView}
+            onChange={(e) => onViewChange(e.target.value)}
+            className="p-2 rounded-md border"
+          >
+            <option value="invoices">Factures</option>
+            <option value="costs">Coûts</option>
+            <option value="clients">Clients</option>
+          </select>
 
           <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <User className="h-4 w-4 text-gray-600 dark:text-gray-300" />

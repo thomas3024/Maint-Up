@@ -35,7 +35,7 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto text-gray-900 dark:text-gray-100">
+    <div className="p-6 text-gray-900 dark:text-gray-100">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Tableau de Bord</h1>
         <p className="text-gray-600 dark:text-gray-400">Vue d'ensemble de votre activité</p>

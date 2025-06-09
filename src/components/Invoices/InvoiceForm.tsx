@@ -161,9 +161,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoice, onClose }) => {
               onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
-              <option value="pending">🟥 En attente</option>
-              <option value="paid">🟩 Payée</option>
-              <option value="overdue">🟥 En retard</option>
+              <option value="pending">En attente</option>
+              <option value="paid">Payée</option>
+              <option value="overdue">En retard</option>
             </select>
           </div>
 
