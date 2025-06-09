@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Client, Invoice, Cost, User, MonthlyData, AnnualReport, MonthlyClientData, MonthlyInvoiceTotals } from '../types';
-import { format, subMonths, getMonth, getYear } from 'date-fns';
+import { format, getYear } from 'date-fns';
 
 interface AppContextType {
   // User management
