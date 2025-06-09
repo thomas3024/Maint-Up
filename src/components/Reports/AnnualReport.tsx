@@ -39,7 +39,7 @@ const AnnualReport: React.FC = () => {
   
   const report = getAnnualReport(selectedYear);
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+  const years = Array.from({ length: 6 }, (_, i) => currentYear + 1 - i);
 
   // Monthly evolution chart
   const monthlyChartData = {
