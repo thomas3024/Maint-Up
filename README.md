@@ -29,10 +29,10 @@ npm run server
 ```
 
 L'application communiquera alors avec ce backend pour sauvegarder clients, factures
-et coûts.
-
-Sans ce serveur, les données sont stockées uniquement dans le `localStorage` du
-navigateur et seront perdues lors d'un nettoyage de celui-ci.
+et coûts. Si le serveur n'est pas disponible, l'application fonctionne quand même
+grâce à un stockage dans le `localStorage` du navigateur. Vos données seront ainsi
+conservées localement et synchronisées avec le backend dès qu'il sera de nouveau
+accessible.
 
 ## Utilisation
 
