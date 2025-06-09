@@ -1,8 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Client, Invoice, Cost, User, MonthlyData, AnnualReport, MonthlyClientData } from '../types';
+import {
+  Client,
+  Invoice,
+  Cost,
+  User,
+  MonthlyData,
+  AnnualReport,
+  MonthlyClientData
+} from '../types';
 import { format, subMonths, getMonth, getYear } from 'date-fns';
+
+const API_URL = 'http://localhost:3000';
 
 interface AppContextType {
   // User management
@@ -15,7 +25,7 @@ interface AppContextType {
   costs: Cost[];
   
   // CRUD operations
-  addClient: (client: Omit<Client, 'id' | 'createdAt' | 'totalInvoices' | 'totalCosts' | 'totalProfit' | 'monthlyData'>) => void;
+  addClient: (client: Omit<Client, 'id' | 'createdAt' | 'totalInvoices' | 'totalCosts' | 'totalProfit'>) => void;
   updateClient: (id: string, client: Partial<Client>) => void;
   deleteClient: (id: string) => void;
   
@@ -56,293 +66,137 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     role: 'admin'
   });
 
-  // Chargement des données depuis localStorage ou données par défaut
-  const [clients, setClients] = useState<Client[]>(() => {
-    const stored = localStorage.getItem('clients');
-    if (stored) {
-      try {
-        const parsed: Client[] = JSON.parse(stored);
-        return parsed.map(c => ({
-          ...c,
-          createdAt: new Date(c.createdAt)
-        }));
-      } catch {
-        // ignore parsing errors and fallback to defaults
-      }
-    }
-    return [
-      {
-        id: '1',
-        name: 'Entreprise Alpha',
-        email: 'contact@alpha.fr',
-        phone: '01 23 45 67 89',
-        address: '123 Rue de la Paix, 75001 Paris',
-        createdAt: new Date('2024-01-15'),
-        totalInvoices: 18000,
-        totalCosts: 9500,
-        totalProfit: 8500,
-        monthlyData: []
-      },
-      {
-        id: '2',
-        name: 'Société Beta',
-        email: 'info@beta.fr',
-        phone: '01 98 76 54 32',
-        address: '456 Avenue des Champs, 69000 Lyon',
-        createdAt: new Date('2024-02-20'),
-        totalInvoices: 32000,
-        totalCosts: 18000,
-        totalProfit: 14000,
-        monthlyData: []
-      },
-      {
-        id: '3',
-        name: 'Groupe Gamma',
-        email: 'contact@gamma.fr',
-        phone: '01 55 44 33 22',
-        address: '789 Boulevard Haussmann, 75008 Paris',
-        createdAt: new Date('2024-03-10'),
-        totalInvoices: 25000,
-        totalCosts: 12000,
-        totalProfit: 13000,
-        monthlyData: []
-      }
-    ];
-  });
+  // Données chargées depuis l'API backend
+  const [clients, setClients] = useState<Client[]>([]);
 
-  const [invoices, setInvoices] = useState<Invoice[]>(() => {
-    const stored = localStorage.getItem('invoices');
-    if (stored) {
-      try {
-        const parsed: Invoice[] = JSON.parse(stored);
-        return parsed.map(inv => ({
-          ...inv,
-          issueDate: new Date(inv.issueDate),
-          dueDate: new Date(inv.dueDate)
-        }));
-      } catch {
-        // ignore parsing errors
-      }
-    }
-    return [
-      {
-        id: '1',
-        clientId: '1',
-        clientName: 'Entreprise Alpha',
-        number: 'INV-2024-001',
-        amountHT: 5000,
-        tva: 1000,
-        amountTTC: 6000,
-        status: 'paid',
-        issueDate: new Date('2024-01-15'),
-        dueDate: new Date('2024-02-15'),
-        description: 'Maintenance préventive Q1'
-      },
-      {
-        id: '2',
-        clientId: '1',
-        clientName: 'Entreprise Alpha',
-        number: 'INV-2024-002',
-        amountHT: 7500,
-        tva: 1500,
-        amountTTC: 9000,
-        status: 'pending',
-        issueDate: new Date('2024-02-01'),
-        dueDate: new Date('2024-03-01'),
-        description: 'Réparation équipement industriel'
-      },
-      {
-        id: '3',
-        clientId: '2',
-        clientName: 'Société Beta',
-        number: 'INV-2024-003',
-        amountHT: 12000,
-        tva: 2400,
-        amountTTC: 14400,
-        status: 'paid',
-        issueDate: new Date('2024-01-20'),
-        dueDate: new Date('2024-02-20'),
-        description: 'Installation nouvelle ligne de production'
-      },
-      {
-        id: '4',
-        clientId: '2',
-        clientName: 'Société Beta',
-        number: 'INV-2024-004',
-        amountHT: 8000,
-        tva: 1600,
-        amountTTC: 9600,
-        status: 'paid',
-        issueDate: new Date('2024-03-15'),
-        dueDate: new Date('2024-04-15'),
-        description: 'Maintenance trimestrielle'
-      },
-      {
-        id: '5',
-        clientId: '3',
-        clientName: 'Groupe Gamma',
-        number: 'INV-2024-005',
-        amountHT: 15000,
-        tva: 3000,
-        amountTTC: 18000,
-        status: 'paid',
-        issueDate: new Date('2024-03-10'),
-        dueDate: new Date('2024-04-10'),
-        description: 'Audit et optimisation système'
-      }
-    ];
-  });
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
-  const [costs, setCosts] = useState<Cost[]>(() => {
-    const stored = localStorage.getItem('costs');
-    if (stored) {
-      try {
-        const parsed: Cost[] = JSON.parse(stored);
-        return parsed.map(cost => ({
-          ...cost,
-          date: new Date(cost.date)
-        }));
-      } catch {
-        // ignore parsing errors
-      }
-    }
-    return [
-      {
-        id: '1',
-        clientId: '1',
-        clientName: 'Entreprise Alpha',
-        invoiceId: '1',
-        description: 'Salaire technicien',
-        amount: 2500,
-        category: 'salaries',
-        date: new Date('2024-01-16')
-      },
-      {
-        id: '2',
-        clientId: '1',
-        clientName: 'Entreprise Alpha',
-        invoiceId: '2',
-        description: 'Pièces de rechange',
-        amount: 1800,
-        category: 'materials',
-        date: new Date('2024-02-02')
-      },
-      {
-        id: '3',
-        clientId: '2',
-        clientName: 'Société Beta',
-        invoiceId: '3',
-        description: 'Sous-traitance spécialisée',
-        amount: 4000,
-        category: 'subcontracting',
-        date: new Date('2024-01-21')
-      },
-      {
-        id: '4',
-        clientId: '2',
-        clientName: 'Société Beta',
-        invoiceId: '4',
-        description: 'Charges sociales',
-        amount: 1200,
-        category: 'charges',
-        date: new Date('2024-03-16')
-      },
-      {
-        id: '5',
-        clientId: '3',
-        clientName: 'Groupe Gamma',
-        invoiceId: '5',
-        description: 'Équipement diagnostic',
-        amount: 3500,
-        category: 'materials',
-        date: new Date('2024-03-11')
-      }
-    ];
-  });
-
-  // Sauvegarde automatique dans localStorage
-  useEffect(() => {
-    localStorage.setItem('clients', JSON.stringify(clients));
-  }, [clients]);
+  const [costs, setCosts] = useState<Cost[]>([]);
 
   useEffect(() => {
-    localStorage.setItem('invoices', JSON.stringify(invoices));
-  }, [invoices]);
+    fetch('http://localhost:3000/clients')
+      .then(res => res.json())
+      .then(data =>
+        setClients(
+          data.map((c: any) => ({ ...c, createdAt: new Date(c.createdAt) }))
+        )
+      );
+    fetch('http://localhost:3000/invoices')
+      .then(res => res.json())
+      .then(data =>
+        setInvoices(
+          data.map((inv: any) => ({
+            ...inv,
+            issueDate: new Date(inv.issueDate),
+            dueDate: new Date(inv.dueDate)
+          }))
+        )
+      );
+    fetch('http://localhost:3000/costs')
+      .then(res => res.json())
+      .then(data =>
+        setCosts(
+          data.map((cost: any) => ({ ...cost, date: new Date(cost.date) }))
+        )
+      );
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('costs', JSON.stringify(costs));
-  }, [costs]);
+
 
   // Client operations
-  const addClient = (clientData: Omit<Client, 'id' | 'createdAt' | 'totalInvoices' | 'totalCosts' | 'totalProfit' | 'monthlyData'>) => {
-    const newClient: Client = {
-      ...clientData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      totalInvoices: 0,
-      totalCosts: 0,
-      totalProfit: 0,
-      monthlyData: []
-    };
+  const addClient = async (
+    clientData: Omit<Client, 'id' | 'createdAt' | 'totalInvoices' | 'totalCosts' | 'totalProfit'>
+  ) => {
+    const res = await fetch(`${API_URL}/clients`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(clientData)
+    });
+    const newClient: Client = await res.json();
+    newClient.createdAt = new Date(newClient.createdAt);
     setClients(prev => [...prev, newClient]);
   };
 
-  const updateClient = (id: string, updates: Partial<Client>) => {
-    setClients(prev => prev.map(client => 
-      client.id === id ? { ...client, ...updates } : client
-    ));
+  const updateClient = async (id: string, updates: Partial<Client>) => {
+    const res = await fetch(`${API_URL}/clients/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+    if (res.ok) {
+      const updated: Client = await res.json();
+      updated.createdAt = new Date(updated.createdAt);
+      setClients(prev => prev.map(client => (client.id === id ? updated : client)));
+    }
   };
 
-  const deleteClient = (id: string) => {
+  const deleteClient = async (id: string) => {
+    await fetch(`${API_URL}/clients/${id}`, { method: 'DELETE' });
     setClients(prev => prev.filter(client => client.id !== id));
     setInvoices(prev => prev.filter(invoice => invoice.clientId !== id));
     setCosts(prev => prev.filter(cost => cost.clientId !== id));
   };
 
   // Invoice operations
-  const addInvoice = (invoiceData: Omit<Invoice, 'id' | 'amountTTC'>) => {
-    const newInvoice: Invoice = {
-      ...invoiceData,
-      id: Date.now().toString(),
-      amountTTC: invoiceData.amountHT + invoiceData.tva
-    };
+  const addInvoice = async (invoiceData: Omit<Invoice, 'id' | 'amountTTC'>) => {
+    const res = await fetch(`${API_URL}/invoices`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(invoiceData)
+    });
+    const newInvoice: Invoice = await res.json();
+    newInvoice.issueDate = new Date(newInvoice.issueDate);
+    newInvoice.dueDate = new Date(newInvoice.dueDate);
     setInvoices(prev => [...prev, newInvoice]);
   };
 
-  const updateInvoice = (id: string, updates: Partial<Invoice>) => {
-    setInvoices(prev => prev.map(invoice => {
-      if (invoice.id === id) {
-        const updated = { ...invoice, ...updates };
-        if (updates.amountHT !== undefined || updates.tva !== undefined) {
-          updated.amountTTC = (updates.amountHT || invoice.amountHT) + (updates.tva || invoice.tva);
-        }
-        return updated;
-      }
-      return invoice;
-    }));
+  const updateInvoice = async (id: string, updates: Partial<Invoice>) => {
+    const res = await fetch(`${API_URL}/invoices/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+    if (res.ok) {
+      const updated: Invoice = await res.json();
+      updated.issueDate = new Date(updated.issueDate);
+      updated.dueDate = new Date(updated.dueDate);
+      setInvoices(prev => prev.map(inv => (inv.id === id ? updated : inv)));
+    }
   };
 
-  const deleteInvoice = (id: string) => {
+  const deleteInvoice = async (id: string) => {
+    await fetch(`${API_URL}/invoices/${id}`, { method: 'DELETE' });
     setInvoices(prev => prev.filter(invoice => invoice.id !== id));
     setCosts(prev => prev.filter(cost => cost.invoiceId !== id));
   };
 
   // Cost operations
-  const addCost = (costData: Omit<Cost, 'id'>) => {
-    const newCost: Cost = {
-      ...costData,
-      id: Date.now().toString()
-    };
+  const addCost = async (costData: Omit<Cost, 'id'>) => {
+    const res = await fetch(`${API_URL}/costs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(costData)
+    });
+    const newCost: Cost = await res.json();
+    newCost.date = new Date(newCost.date);
     setCosts(prev => [...prev, newCost]);
   };
 
-  const updateCost = (id: string, updates: Partial<Cost>) => {
-    setCosts(prev => prev.map(cost => 
-      cost.id === id ? { ...cost, ...updates } : cost
-    ));
+  const updateCost = async (id: string, updates: Partial<Cost>) => {
+    const res = await fetch(`${API_URL}/costs/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+    if (res.ok) {
+      const updated: Cost = await res.json();
+      updated.date = new Date(updated.date);
+      setCosts(prev => prev.map(cost => (cost.id === id ? updated : cost)));
+    }
   };
 
-  const deleteCost = (id: string) => {
+  const deleteCost = async (id: string) => {
+    await fetch(`${API_URL}/costs/${id}`, { method: 'DELETE' });
     setCosts(prev => prev.filter(cost => cost.id !== id));
   };
 

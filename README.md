@@ -19,6 +19,21 @@ npm run dev
 
 Par défaut, l'application est accessible sur `http://localhost:5173`.
 
+### Backend
+
+Un petit serveur Express est fourni pour persister les données dans `server/data.json`.
+Lancez-le dans un terminal séparé :
+
+```bash
+npm run server
+```
+
+L'application communiquera alors avec ce backend pour sauvegarder clients, factures
+et coûts.
+
+Sans ce serveur, les données sont stockées uniquement dans le `localStorage` du
+navigateur et seront perdues lors d'un nettoyage de celui-ci.
+
 ## Utilisation
 
 La barre latérale donne accès aux différentes pages :
@@ -36,4 +51,8 @@ La barre latérale donne accès aux différentes pages :
 - Calcul automatique du chiffre d'affaires, des marges et du bénéfice.
 - Visualisation des performances par client et par période.
 - Export du rapport annuel en PDF.
+
+## Licence
+
+Ce projet est distribué sous licence MIT. Voir le fichier [LICENSE](LICENSE).
 
