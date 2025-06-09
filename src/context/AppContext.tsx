@@ -48,13 +48,15 @@ export const useAppContext = () => {
   return context;
 };
 
-function reviveDates<T, K extends keyof T>(obj: T, keys: K[]): T {
-  const copy = { ...obj } as T;
+function reviveDates<T extends Record<string, unknown>>(obj: T, keys: (keyof T)[]): T {
+  const copy = { ...obj };
   for (const key of keys) {
     const value = copy[key];
-    (copy as T)[key] = new Date(value as unknown as string | number) as T[K];
+    if (typeof value === 'string' || typeof value === 'number') {
+      (copy as Record<string, unknown>)[key] = new Date(value);
+    }
   }
-  return copy;
+  return copy as T;
 }
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
