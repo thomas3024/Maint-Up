@@ -29,7 +29,19 @@ function createRouter(key) {
 
   router.post('/', (req, res) => {
     const data = readData();
-    const item = { id: Date.now().toString(), ...req.body };
+    let item = { id: Date.now().toString(), ...req.body };
+
+    // Add default fields for new clients
+    if (key === 'clients') {
+      item = {
+        createdAt: new Date().toISOString(),
+        totalInvoices: 0,
+        totalCosts: 0,
+        totalProfit: 0,
+        ...item
+      };
+    }
+
     data[key].push(item);
     writeData(data);
     res.status(201).json(item);
