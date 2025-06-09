@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Client, Invoice, Cost, User, MonthlyData, AnnualReport, MonthlyClientData } from '../types';
@@ -56,166 +56,222 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     role: 'admin'
   });
 
-  // Sample data with enhanced structure
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: '1',
-      name: 'Entreprise Alpha',
-      email: 'contact@alpha.fr',
-      phone: '01 23 45 67 89',
-      address: '123 Rue de la Paix, 75001 Paris',
-      createdAt: new Date('2024-01-15'),
-      totalInvoices: 18000,
-      totalCosts: 9500,
-      totalProfit: 8500,
-      monthlyData: []
-    },
-    {
-      id: '2',
-      name: 'Société Beta',
-      email: 'info@beta.fr',
-      phone: '01 98 76 54 32',
-      address: '456 Avenue des Champs, 69000 Lyon',
-      createdAt: new Date('2024-02-20'),
-      totalInvoices: 32000,
-      totalCosts: 18000,
-      totalProfit: 14000,
-      monthlyData: []
-    },
-    {
-      id: '3',
-      name: 'Groupe Gamma',
-      email: 'contact@gamma.fr',
-      phone: '01 55 44 33 22',
-      address: '789 Boulevard Haussmann, 75008 Paris',
-      createdAt: new Date('2024-03-10'),
-      totalInvoices: 25000,
-      totalCosts: 12000,
-      totalProfit: 13000,
-      monthlyData: []
+  // Chargement des données depuis localStorage ou données par défaut
+  const [clients, setClients] = useState<Client[]>(() => {
+    const stored = localStorage.getItem('clients');
+    if (stored) {
+      try {
+        const parsed: Client[] = JSON.parse(stored);
+        return parsed.map(c => ({
+          ...c,
+          createdAt: new Date(c.createdAt)
+        }));
+      } catch {
+        // ignore parsing errors and fallback to defaults
+      }
     }
-  ]);
+    return [
+      {
+        id: '1',
+        name: 'Entreprise Alpha',
+        email: 'contact@alpha.fr',
+        phone: '01 23 45 67 89',
+        address: '123 Rue de la Paix, 75001 Paris',
+        createdAt: new Date('2024-01-15'),
+        totalInvoices: 18000,
+        totalCosts: 9500,
+        totalProfit: 8500,
+        monthlyData: []
+      },
+      {
+        id: '2',
+        name: 'Société Beta',
+        email: 'info@beta.fr',
+        phone: '01 98 76 54 32',
+        address: '456 Avenue des Champs, 69000 Lyon',
+        createdAt: new Date('2024-02-20'),
+        totalInvoices: 32000,
+        totalCosts: 18000,
+        totalProfit: 14000,
+        monthlyData: []
+      },
+      {
+        id: '3',
+        name: 'Groupe Gamma',
+        email: 'contact@gamma.fr',
+        phone: '01 55 44 33 22',
+        address: '789 Boulevard Haussmann, 75008 Paris',
+        createdAt: new Date('2024-03-10'),
+        totalInvoices: 25000,
+        totalCosts: 12000,
+        totalProfit: 13000,
+        monthlyData: []
+      }
+    ];
+  });
 
-  const [invoices, setInvoices] = useState<Invoice[]>([
-    {
-      id: '1',
-      clientId: '1',
-      clientName: 'Entreprise Alpha',
-      number: 'INV-2024-001',
-      amountHT: 5000,
-      tva: 1000,
-      amountTTC: 6000,
-      status: 'paid',
-      issueDate: new Date('2024-01-15'),
-      dueDate: new Date('2024-02-15'),
-      description: 'Maintenance préventive Q1'
-    },
-    {
-      id: '2',
-      clientId: '1',
-      clientName: 'Entreprise Alpha',
-      number: 'INV-2024-002',
-      amountHT: 7500,
-      tva: 1500,
-      amountTTC: 9000,
-      status: 'pending',
-      issueDate: new Date('2024-02-01'),
-      dueDate: new Date('2024-03-01'),
-      description: 'Réparation équipement industriel'
-    },
-    {
-      id: '3',
-      clientId: '2',
-      clientName: 'Société Beta',
-      number: 'INV-2024-003',
-      amountHT: 12000,
-      tva: 2400,
-      amountTTC: 14400,
-      status: 'paid',
-      issueDate: new Date('2024-01-20'),
-      dueDate: new Date('2024-02-20'),
-      description: 'Installation nouvelle ligne de production'
-    },
-    {
-      id: '4',
-      clientId: '2',
-      clientName: 'Société Beta',
-      number: 'INV-2024-004',
-      amountHT: 8000,
-      tva: 1600,
-      amountTTC: 9600,
-      status: 'paid',
-      issueDate: new Date('2024-03-15'),
-      dueDate: new Date('2024-04-15'),
-      description: 'Maintenance trimestrielle'
-    },
-    {
-      id: '5',
-      clientId: '3',
-      clientName: 'Groupe Gamma',
-      number: 'INV-2024-005',
-      amountHT: 15000,
-      tva: 3000,
-      amountTTC: 18000,
-      status: 'paid',
-      issueDate: new Date('2024-03-10'),
-      dueDate: new Date('2024-04-10'),
-      description: 'Audit et optimisation système'
+  const [invoices, setInvoices] = useState<Invoice[]>(() => {
+    const stored = localStorage.getItem('invoices');
+    if (stored) {
+      try {
+        const parsed: Invoice[] = JSON.parse(stored);
+        return parsed.map(inv => ({
+          ...inv,
+          issueDate: new Date(inv.issueDate),
+          dueDate: new Date(inv.dueDate)
+        }));
+      } catch {
+        // ignore parsing errors
+      }
     }
-  ]);
+    return [
+      {
+        id: '1',
+        clientId: '1',
+        clientName: 'Entreprise Alpha',
+        number: 'INV-2024-001',
+        amountHT: 5000,
+        tva: 1000,
+        amountTTC: 6000,
+        status: 'paid',
+        issueDate: new Date('2024-01-15'),
+        dueDate: new Date('2024-02-15'),
+        description: 'Maintenance préventive Q1'
+      },
+      {
+        id: '2',
+        clientId: '1',
+        clientName: 'Entreprise Alpha',
+        number: 'INV-2024-002',
+        amountHT: 7500,
+        tva: 1500,
+        amountTTC: 9000,
+        status: 'pending',
+        issueDate: new Date('2024-02-01'),
+        dueDate: new Date('2024-03-01'),
+        description: 'Réparation équipement industriel'
+      },
+      {
+        id: '3',
+        clientId: '2',
+        clientName: 'Société Beta',
+        number: 'INV-2024-003',
+        amountHT: 12000,
+        tva: 2400,
+        amountTTC: 14400,
+        status: 'paid',
+        issueDate: new Date('2024-01-20'),
+        dueDate: new Date('2024-02-20'),
+        description: 'Installation nouvelle ligne de production'
+      },
+      {
+        id: '4',
+        clientId: '2',
+        clientName: 'Société Beta',
+        number: 'INV-2024-004',
+        amountHT: 8000,
+        tva: 1600,
+        amountTTC: 9600,
+        status: 'paid',
+        issueDate: new Date('2024-03-15'),
+        dueDate: new Date('2024-04-15'),
+        description: 'Maintenance trimestrielle'
+      },
+      {
+        id: '5',
+        clientId: '3',
+        clientName: 'Groupe Gamma',
+        number: 'INV-2024-005',
+        amountHT: 15000,
+        tva: 3000,
+        amountTTC: 18000,
+        status: 'paid',
+        issueDate: new Date('2024-03-10'),
+        dueDate: new Date('2024-04-10'),
+        description: 'Audit et optimisation système'
+      }
+    ];
+  });
 
-  const [costs, setCosts] = useState<Cost[]>([
-    {
-      id: '1',
-      clientId: '1',
-      clientName: 'Entreprise Alpha',
-      invoiceId: '1',
-      description: 'Salaire technicien',
-      amount: 2500,
-      category: 'salaries',
-      date: new Date('2024-01-16')
-    },
-    {
-      id: '2',
-      clientId: '1',
-      clientName: 'Entreprise Alpha',
-      invoiceId: '2',
-      description: 'Pièces de rechange',
-      amount: 1800,
-      category: 'materials',
-      date: new Date('2024-02-02')
-    },
-    {
-      id: '3',
-      clientId: '2',
-      clientName: 'Société Beta',
-      invoiceId: '3',
-      description: 'Sous-traitance spécialisée',
-      amount: 4000,
-      category: 'subcontracting',
-      date: new Date('2024-01-21')
-    },
-    {
-      id: '4',
-      clientId: '2',
-      clientName: 'Société Beta',
-      invoiceId: '4',
-      description: 'Charges sociales',
-      amount: 1200,
-      category: 'charges',
-      date: new Date('2024-03-16')
-    },
-    {
-      id: '5',
-      clientId: '3',
-      clientName: 'Groupe Gamma',
-      invoiceId: '5',
-      description: 'Équipement diagnostic',
-      amount: 3500,
-      category: 'materials',
-      date: new Date('2024-03-11')
+  const [costs, setCosts] = useState<Cost[]>(() => {
+    const stored = localStorage.getItem('costs');
+    if (stored) {
+      try {
+        const parsed: Cost[] = JSON.parse(stored);
+        return parsed.map(cost => ({
+          ...cost,
+          date: new Date(cost.date)
+        }));
+      } catch {
+        // ignore parsing errors
+      }
     }
-  ]);
+    return [
+      {
+        id: '1',
+        clientId: '1',
+        clientName: 'Entreprise Alpha',
+        invoiceId: '1',
+        description: 'Salaire technicien',
+        amount: 2500,
+        category: 'salaries',
+        date: new Date('2024-01-16')
+      },
+      {
+        id: '2',
+        clientId: '1',
+        clientName: 'Entreprise Alpha',
+        invoiceId: '2',
+        description: 'Pièces de rechange',
+        amount: 1800,
+        category: 'materials',
+        date: new Date('2024-02-02')
+      },
+      {
+        id: '3',
+        clientId: '2',
+        clientName: 'Société Beta',
+        invoiceId: '3',
+        description: 'Sous-traitance spécialisée',
+        amount: 4000,
+        category: 'subcontracting',
+        date: new Date('2024-01-21')
+      },
+      {
+        id: '4',
+        clientId: '2',
+        clientName: 'Société Beta',
+        invoiceId: '4',
+        description: 'Charges sociales',
+        amount: 1200,
+        category: 'charges',
+        date: new Date('2024-03-16')
+      },
+      {
+        id: '5',
+        clientId: '3',
+        clientName: 'Groupe Gamma',
+        invoiceId: '5',
+        description: 'Équipement diagnostic',
+        amount: 3500,
+        category: 'materials',
+        date: new Date('2024-03-11')
+      }
+    ];
+  });
+
+  // Sauvegarde automatique dans localStorage
+  useEffect(() => {
+    localStorage.setItem('clients', JSON.stringify(clients));
+  }, [clients]);
+
+  useEffect(() => {
+    localStorage.setItem('invoices', JSON.stringify(invoices));
+  }, [invoices]);
+
+  useEffect(() => {
+    localStorage.setItem('costs', JSON.stringify(costs));
+  }, [costs]);
 
   // Client operations
   const addClient = (clientData: Omit<Client, 'id' | 'createdAt' | 'totalInvoices' | 'totalCosts' | 'totalProfit' | 'monthlyData'>) => {
