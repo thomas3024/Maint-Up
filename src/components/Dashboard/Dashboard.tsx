@@ -10,6 +10,7 @@ import {
 import StatsCard from './StatsCard';
 import RevenueChart from './RevenueChart';
 import ProfitChart from './ProfitChart';
+import InvoiceStatusChart from './InvoiceStatusChart';
 import ClientsList from './ClientsList';
 import { useAppContext } from '../../context/AppContext';
 
@@ -77,7 +78,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Évolution du Chiffre d'Affaires
@@ -90,6 +91,13 @@ const Dashboard: React.FC = () => {
             Analyse des Bénéfices
           </h2>
           <ProfitChart />
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Statut des Factures
+          </h2>
+          <InvoiceStatusChart />
         </div>
       </div>
 
