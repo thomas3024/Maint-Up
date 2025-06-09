@@ -62,6 +62,12 @@ export interface MonthlyClientData {
   invoicesCount: number;
 }
 
+export interface MonthlyInvoiceTotals {
+  month: string;
+  totalHT: number;
+  totalTTC: number;
+}
+
 export interface AnnualReport {
   year: number;
   totalRevenue: number;

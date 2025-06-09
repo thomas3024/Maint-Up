@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Client, Invoice, Cost, User, MonthlyData, AnnualReport, MonthlyClientData } from '../types';
+import { Client, Invoice, Cost, User, MonthlyData, AnnualReport, MonthlyClientData, MonthlyInvoiceTotals } from '../types';
 import { format, subMonths, getMonth, getYear } from 'date-fns';
 
 interface AppContextType {
@@ -28,12 +28,13 @@ interface AppContextType {
   deleteCost: (id: string) => void;
   
   // Analytics
-  getMonthlyData: () => MonthlyData[];
+  getMonthlyData: (year?: number) => MonthlyData[];
   getTotalRevenue: () => number;
   getTotalCosts: () => number;
   getTotalProfit: () => number;
   getClientProfit: (clientId: string) => number;
-  getClientMonthlyData: (clientId: string) => MonthlyClientData[];
+  getClientMonthlyData: (clientId: string, year?: number) => MonthlyClientData[];
+  getInvoicesByMonth: (year: number) => MonthlyInvoiceTotals[];
   getAnnualReport: (year: number) => AnnualReport;
   exportToPDF: () => Promise<string | void>;
 }
@@ -161,6 +162,32 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       issueDate: new Date('2024-03-10'),
       dueDate: new Date('2024-04-10'),
       description: 'Audit et optimisation système'
+    },
+    {
+      id: '6',
+      clientId: '1',
+      clientName: 'Entreprise Alpha',
+      number: 'INV-2025-001',
+      amountHT: 7000,
+      tva: 1400,
+      amountTTC: 8400,
+      status: 'paid',
+      issueDate: new Date('2025-01-05'),
+      dueDate: new Date('2025-02-05'),
+      description: 'Contrat annuel 2025'
+    },
+    {
+      id: '7',
+      clientId: '2',
+      clientName: 'Société Beta',
+      number: 'INV-2025-002',
+      amountHT: 10000,
+      tva: 2000,
+      amountTTC: 12000,
+      status: 'pending',
+      issueDate: new Date('2025-02-10'),
+      dueDate: new Date('2025-03-10'),
+      description: 'Extension de garantie'
     }
   ]);
 
@@ -214,6 +241,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       amount: 3500,
       category: 'materials',
       date: new Date('2024-03-11')
+    },
+    {
+      id: '6',
+      clientId: '1',
+      clientName: 'Entreprise Alpha',
+      invoiceId: '6',
+      description: 'Main-d\'œuvre janvier',
+      amount: 3000,
+      category: 'salaries',
+      date: new Date('2025-01-06')
+    },
+    {
+      id: '7',
+      clientId: '2',
+      clientName: 'Société Beta',
+      invoiceId: '7',
+      description: 'Fournitures février',
+      amount: 2500,
+      category: 'materials',
+      date: new Date('2025-02-11')
     }
   ]);
 
@@ -291,9 +338,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // Analytics
-  const getMonthlyData = (): MonthlyData[] => {
+  const getMonthlyData = (year: number = new Date().getFullYear()): MonthlyData[] => {
     const months = Array.from({ length: 12 }, (_, i) => {
-      const date = subMonths(new Date(), 11 - i);
+      const date = new Date(year, i, 1);
       return format(date, 'MMM yyyy');
     });
 
@@ -341,12 +388,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return revenue - totalCosts;
   };
 
-  const getClientMonthlyData = (clientId: string): MonthlyClientData[] => {
+  const getClientMonthlyData = (
+    clientId: string,
+    year: number = new Date().getFullYear()
+  ): MonthlyClientData[] => {
     const months = Array.from({ length: 12 }, (_, i) => {
-      const date = subMonths(new Date(), 11 - i);
+      const date = new Date(year, i, 1);
       return {
         month: format(date, 'MMM'),
-        year: getYear(date)
+        year
       };
     });
 
@@ -377,6 +427,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         profit,
         margin,
         invoicesCount: clientInvoices.length
+      };
+    });
+  };
+
+  const getInvoicesByMonth = (year: number): MonthlyInvoiceTotals[] => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const monthLabel = format(new Date(year, i, 1), 'MMM yyyy');
+      const monthInvoices = invoices.filter(inv =>
+        inv.status === 'paid' && format(inv.issueDate, 'MMM yyyy') === monthLabel
+      );
+
+      const totalHT = monthInvoices.reduce((sum, inv) => sum + inv.amountHT, 0);
+      const totalTTC = monthInvoices.reduce((sum, inv) => sum + inv.amountTTC, 0);
+
+      return {
+        month: monthLabel,
+        totalHT,
+        totalTTC
       };
     });
   };
@@ -485,6 +553,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     getTotalProfit,
     getClientProfit,
     getClientMonthlyData,
+    getInvoicesByMonth,
     getAnnualReport,
     exportToPDF
   };
