@@ -28,7 +28,7 @@ const Dashboard: React.FC = () => {
   const profitMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100) : 0;
 
   const pendingInvoices = invoices.filter(inv => inv.status === 'pending');
-  const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+  const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + inv.amountTTC, 0);
 
   return (
     <div className="p-6 max-w-7xl mx-auto text-gray-900 dark:text-gray-100">
