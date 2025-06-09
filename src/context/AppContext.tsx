@@ -48,6 +48,15 @@ export const useAppContext = () => {
   return context;
 };
 
+function reviveDates<T, K extends keyof T>(obj: T, keys: K[]): T {
+  const copy = { ...obj } as T;
+  for (const key of keys) {
+    const value = copy[key];
+    (copy as T)[key] = new Date(value as unknown as string | number) as T[K];
+  }
+  return copy;
+}
+
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>({
     id: '1',
@@ -62,10 +71,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (stored) {
       try {
         const parsed: Client[] = JSON.parse(stored);
-        return parsed.map(c => ({
-          ...c,
-          createdAt: new Date(c.createdAt)
-        }));
+        return parsed.map(c => reviveDates(c, ['createdAt']));
       } catch {
         // ignore parsing errors and fallback to defaults
       }
@@ -115,11 +121,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (stored) {
       try {
         const parsed: Invoice[] = JSON.parse(stored);
-        return parsed.map(inv => ({
-          ...inv,
-          issueDate: new Date(inv.issueDate),
-          dueDate: new Date(inv.dueDate)
-        }));
+        return parsed.map(inv => reviveDates(inv, ['issueDate', 'dueDate']));
       } catch {
         // ignore parsing errors
       }
@@ -198,10 +200,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (stored) {
       try {
         const parsed: Cost[] = JSON.parse(stored);
-        return parsed.map(cost => ({
-          ...cost,
-          date: new Date(cost.date)
-        }));
+        return parsed.map(cost => reviveDates(cost, ['date']));
       } catch {
         // ignore parsing errors
       }
