@@ -13,6 +13,7 @@ import {
 import { format, subMonths, getMonth, getYear } from 'date-fns';
 
 const API_URL = 'http://localhost:3000';
+const LOCAL_STORAGE_KEY = 'maintup-data';
 
 interface AppContextType {
   // User management
@@ -66,39 +67,63 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     role: 'admin'
   });
 
-  // Données chargées depuis l'API backend
+  // Données chargées depuis l'API backend ou le localStorage
   const [clients, setClients] = useState<Client[]>([]);
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   const [costs, setCosts] = useState<Cost[]>([]);
 
+  const [apiAvailable, setApiAvailable] = useState(true);
+
+  const persist = (c = clients, i = invoices, co = costs) => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ clients: c, invoices: i, costs: co }));
+  };
+
   useEffect(() => {
-    fetch('http://localhost:3000/clients')
-      .then(res => res.json())
-      .then(data =>
-        setClients(
-          data.map((c: any) => ({ ...c, createdAt: new Date(c.createdAt) }))
-        )
-      );
-    fetch('http://localhost:3000/invoices')
-      .then(res => res.json())
-      .then(data =>
-        setInvoices(
-          data.map((inv: any) => ({
+    const loadData = async () => {
+      try {
+        const [cRes, iRes, coRes] = await Promise.all([
+          fetch(`${API_URL}/clients`),
+          fetch(`${API_URL}/invoices`),
+          fetch(`${API_URL}/costs`)
+        ]);
+
+        if (!cRes.ok) throw new Error('api');
+
+        const clientsData = await cRes.json();
+        const invoicesData = await iRes.json();
+        const costsData = await coRes.json();
+
+        const c = clientsData.map((cl: any) => ({ ...cl, createdAt: new Date(cl.createdAt) }));
+        const i = invoicesData.map((inv: any) => ({
+          ...inv,
+          issueDate: new Date(inv.issueDate),
+          dueDate: new Date(inv.dueDate)
+        }));
+        const co = costsData.map((cost: any) => ({ ...cost, date: new Date(cost.date) }));
+
+        setClients(c);
+        setInvoices(i);
+        setCosts(co);
+        persist(c, i, co);
+      } catch (err) {
+        setApiAvailable(false);
+        const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (stored) {
+          const { clients: c, invoices: i, costs: co } = JSON.parse(stored);
+          setClients(c.map((cl: any) => ({ ...cl, createdAt: new Date(cl.createdAt) })));
+          setInvoices(i.map((inv: any) => ({
             ...inv,
             issueDate: new Date(inv.issueDate),
             dueDate: new Date(inv.dueDate)
-          }))
-        )
-      );
-    fetch('http://localhost:3000/costs')
-      .then(res => res.json())
-      .then(data =>
-        setCosts(
-          data.map((cost: any) => ({ ...cost, date: new Date(cost.date) }))
-        )
-      );
+          })));
+          setCosts(co.map((cost: any) => ({ ...cost, date: new Date(cost.date) })));
+        }
+      }
+    };
+
+    loadData();
   }, []);
 
 
@@ -107,97 +132,223 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const addClient = async (
     clientData: Omit<Client, 'id' | 'createdAt' | 'totalInvoices' | 'totalCosts' | 'totalProfit'>
   ) => {
-    const res = await fetch(`${API_URL}/clients`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(clientData)
-    });
-    const newClient: Client = await res.json();
-    newClient.createdAt = new Date(newClient.createdAt);
-    setClients(prev => [...prev, newClient]);
+    try {
+      const res = await fetch(`${API_URL}/clients`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clientData)
+      });
+      if (!res.ok) throw new Error('api');
+      const newClient: Client = await res.json();
+      newClient.createdAt = new Date(newClient.createdAt);
+      setClients(prev => {
+        const updated = [...prev, newClient];
+        persist(updated);
+        return updated;
+      });
+    } catch (e) {
+      const newClient: Client = {
+        id: Date.now().toString(),
+        createdAt: new Date(),
+        totalInvoices: 0,
+        totalCosts: 0,
+        totalProfit: 0,
+        ...clientData
+      };
+      setClients(prev => {
+        const updated = [...prev, newClient];
+        persist(updated);
+        return updated;
+      });
+    }
   };
 
   const updateClient = async (id: string, updates: Partial<Client>) => {
-    const res = await fetch(`${API_URL}/clients/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates)
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch(`${API_URL}/clients/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      if (!res.ok) throw new Error('api');
       const updated: Client = await res.json();
       updated.createdAt = new Date(updated.createdAt);
-      setClients(prev => prev.map(client => (client.id === id ? updated : client)));
+      setClients(prev => {
+        const updatedList = prev.map(client => (client.id === id ? updated : client));
+        persist(updatedList);
+        return updatedList;
+      });
+    } catch (e) {
+      setClients(prev => {
+        const updatedList = prev.map(client =>
+          client.id === id ? { ...client, ...updates } : client
+        );
+        persist(updatedList);
+        return updatedList;
+      });
     }
   };
 
   const deleteClient = async (id: string) => {
-    await fetch(`${API_URL}/clients/${id}`, { method: 'DELETE' });
-    setClients(prev => prev.filter(client => client.id !== id));
-    setInvoices(prev => prev.filter(invoice => invoice.clientId !== id));
-    setCosts(prev => prev.filter(cost => cost.clientId !== id));
+    try {
+      await fetch(`${API_URL}/clients/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      // offline, just update local data
+    }
+    setClients(prev => {
+      const updated = prev.filter(client => client.id !== id);
+      persist(updated);
+      return updated;
+    });
+    setInvoices(prev => {
+      const updated = prev.filter(invoice => invoice.clientId !== id);
+      persist(undefined, updated);
+      return updated;
+    });
+    setCosts(prev => {
+      const updated = prev.filter(cost => cost.clientId !== id);
+      persist(undefined, undefined, updated);
+      return updated;
+    });
   };
 
   // Invoice operations
   const addInvoice = async (invoiceData: Omit<Invoice, 'id' | 'amountTTC'>) => {
-    const res = await fetch(`${API_URL}/invoices`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(invoiceData)
-    });
-    const newInvoice: Invoice = await res.json();
-    newInvoice.issueDate = new Date(newInvoice.issueDate);
-    newInvoice.dueDate = new Date(newInvoice.dueDate);
-    setInvoices(prev => [...prev, newInvoice]);
+    try {
+      const res = await fetch(`${API_URL}/invoices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(invoiceData)
+      });
+      if (!res.ok) throw new Error('api');
+      const newInvoice: Invoice = await res.json();
+      newInvoice.issueDate = new Date(newInvoice.issueDate);
+      newInvoice.dueDate = new Date(newInvoice.dueDate);
+      setInvoices(prev => {
+        const updated = [...prev, newInvoice];
+        persist(undefined, updated);
+        return updated;
+      });
+    } catch (e) {
+      const newInvoice: Invoice = {
+        id: Date.now().toString(),
+        amountTTC: invoiceData.amountHT + invoiceData.tva,
+        ...invoiceData,
+        issueDate: invoiceData.issueDate,
+        dueDate: invoiceData.dueDate
+      };
+      setInvoices(prev => {
+        const updated = [...prev, newInvoice];
+        persist(undefined, updated);
+        return updated;
+      });
+    }
   };
 
   const updateInvoice = async (id: string, updates: Partial<Invoice>) => {
-    const res = await fetch(`${API_URL}/invoices/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates)
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch(`${API_URL}/invoices/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      if (!res.ok) throw new Error('api');
       const updated: Invoice = await res.json();
       updated.issueDate = new Date(updated.issueDate);
       updated.dueDate = new Date(updated.dueDate);
-      setInvoices(prev => prev.map(inv => (inv.id === id ? updated : inv)));
+      setInvoices(prev => {
+        const updatedList = prev.map(inv => (inv.id === id ? updated : inv));
+        persist(undefined, updatedList);
+        return updatedList;
+      });
+    } catch (e) {
+      setInvoices(prev => {
+        const updatedList = prev.map(inv => (inv.id === id ? { ...inv, ...updates } : inv));
+        persist(undefined, updatedList);
+        return updatedList;
+      });
     }
   };
 
   const deleteInvoice = async (id: string) => {
-    await fetch(`${API_URL}/invoices/${id}`, { method: 'DELETE' });
-    setInvoices(prev => prev.filter(invoice => invoice.id !== id));
-    setCosts(prev => prev.filter(cost => cost.invoiceId !== id));
+    try {
+      await fetch(`${API_URL}/invoices/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      // offline
+    }
+    setInvoices(prev => {
+      const updated = prev.filter(invoice => invoice.id !== id);
+      persist(undefined, updated);
+      return updated;
+    });
+    setCosts(prev => {
+      const updated = prev.filter(cost => cost.invoiceId !== id);
+      persist(undefined, undefined, updated);
+      return updated;
+    });
   };
 
   // Cost operations
   const addCost = async (costData: Omit<Cost, 'id'>) => {
-    const res = await fetch(`${API_URL}/costs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(costData)
-    });
-    const newCost: Cost = await res.json();
-    newCost.date = new Date(newCost.date);
-    setCosts(prev => [...prev, newCost]);
+    try {
+      const res = await fetch(`${API_URL}/costs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(costData)
+      });
+      if (!res.ok) throw new Error('api');
+      const newCost: Cost = await res.json();
+      newCost.date = new Date(newCost.date);
+      setCosts(prev => {
+        const updated = [...prev, newCost];
+        persist(undefined, undefined, updated);
+        return updated;
+      });
+    } catch (e) {
+      const newCost: Cost = { id: Date.now().toString(), ...costData };
+      setCosts(prev => {
+        const updated = [...prev, newCost];
+        persist(undefined, undefined, updated);
+        return updated;
+      });
+    }
   };
 
   const updateCost = async (id: string, updates: Partial<Cost>) => {
-    const res = await fetch(`${API_URL}/costs/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates)
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch(`${API_URL}/costs/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      if (!res.ok) throw new Error('api');
       const updated: Cost = await res.json();
       updated.date = new Date(updated.date);
-      setCosts(prev => prev.map(cost => (cost.id === id ? updated : cost)));
+      setCosts(prev => {
+        const updatedList = prev.map(cost => (cost.id === id ? updated : cost));
+        persist(undefined, undefined, updatedList);
+        return updatedList;
+      });
+    } catch (e) {
+      setCosts(prev => {
+        const updatedList = prev.map(cost => (cost.id === id ? { ...cost, ...updates } : cost));
+        persist(undefined, undefined, updatedList);
+        return updatedList;
+      });
     }
   };
 
   const deleteCost = async (id: string) => {
-    await fetch(`${API_URL}/costs/${id}`, { method: 'DELETE' });
-    setCosts(prev => prev.filter(cost => cost.id !== id));
+    try {
+      await fetch(`${API_URL}/costs/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      // offline
+    }
+    setCosts(prev => {
+      const updated = prev.filter(cost => cost.id !== id);
+      persist(undefined, undefined, updated);
+      return updated;
+    });
   };
 
   // Analytics
