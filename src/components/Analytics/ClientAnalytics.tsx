@@ -30,9 +30,9 @@ const ClientAnalytics: React.FC = () => {
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || '');
   
   const selectedClient = clients.find(c => c.id === selectedClientId);
-  // Limit to the last 12 months to display a full year of data
+  // Display data for the entire year 2025
   const monthlyData = selectedClient
-    ? getClientMonthlyData(selectedClientId).slice(-12)
+    ? getClientMonthlyData(selectedClientId, 2025)
     : [];
 
   const chartData = {
