@@ -37,11 +37,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeView, onViewCh
       )}
 
       {/* Sidebar */}
-      <div className={`
-        fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:shadow-none
-      `}>
+      <div
+        className={`
+          fixed top-0 left-0 h-full w-64 flex flex-col bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 lg:static lg:shadow-none
+        `}
+      >
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 lg:hidden">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Menu</h2>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -77,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeView, onViewCh
           </ul>
         </nav>
 
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="mt-auto p-4">
           <div className="bg-pastel-blue dark:bg-gray-700 p-4 rounded-lg">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Maint Up Pro</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
