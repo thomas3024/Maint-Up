@@ -64,7 +64,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     id: '1',
     name: 'Admin User',
     email: 'admin@maintup.fr',
-    role: 'admin'
+    role: 'viewer'
   });
 
   // Données chargées depuis l'API backend ou le localStorage

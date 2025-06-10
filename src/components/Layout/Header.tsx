@@ -14,11 +14,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, theme, onThemeToggle, act
   const { currentUser, setCurrentUser } = useAppContext();
 
   const handleRoleToggle = () => {
-    if (currentUser) {
-      setCurrentUser({
-        ...currentUser,
-        role: currentUser.role === 'admin' ? 'viewer' : 'admin'
-      });
+    if (!currentUser) return;
+    if (currentUser.role === 'admin') {
+      setCurrentUser({ ...currentUser, role: 'viewer' });
+    } else {
+      const pwd = window.prompt('Entrez le mot de passe administrateur');
+      if (pwd === 'THABARY') {
+        setCurrentUser({ ...currentUser, role: 'admin' });
+      } else if (pwd !== null) {
+        alert('Mot de passe incorrect');
+      }
     }
   };
 
