@@ -47,7 +47,7 @@ function App() {
 
   return (
     <AppProvider>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 lg:pl-64">
         <Header
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
           theme={theme}
@@ -55,19 +55,17 @@ function App() {
           activeView={activeView}
           onViewChange={setActiveView}
         />
-        
-        <div className="flex">
-          <Sidebar
-            isOpen={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
-            activeView={activeView}
-            onViewChange={setActiveView}
-          />
-          
-          <main className="flex-1 lg:ml-64 mx-auto max-w-7xl p-6">
-            {renderActiveView()}
-          </main>
-        </div>
+
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          activeView={activeView}
+          onViewChange={setActiveView}
+        />
+
+        <main className="mx-auto max-w-7xl p-6">
+          {renderActiveView()}
+        </main>
       </div>
     </AppProvider>
   );

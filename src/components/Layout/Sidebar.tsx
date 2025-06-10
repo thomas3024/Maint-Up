@@ -41,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeView, onViewCh
         className={`
           fixed top-0 left-0 h-full w-64 flex flex-col bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0 lg:static lg:shadow-none
+          lg:translate-x-0 lg:shadow-none
         `}
       >
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 lg:hidden">
