@@ -44,7 +44,7 @@ interface AppContextType {
   getTotalCosts: () => number;
   getTotalProfit: () => number;
   getClientProfit: (clientId: string) => number;
-  getClientMonthlyData: (clientId: string) => MonthlyClientData[];
+  getClientMonthlyData: (clientId: string, year?: number) => MonthlyClientData[];
   getAnnualReport: (year: number) => AnnualReport;
   exportToPDF: () => Promise<string | void>;
 }
@@ -402,20 +402,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return revenue - totalCosts;
   };
 
-  const getClientMonthlyData = (clientId: string): MonthlyClientData[] => {
-    const startDate = new Date(2025, 0, 1);
-
-    const lastInvoiceDate = invoices
-      .filter(inv => inv.clientId === clientId)
-      .reduce((latest, inv) => (inv.issueDate > latest ? inv.issueDate : latest), new Date(0));
-
-    const lastCostDate = costs
-      .filter(cost => cost.clientId === clientId)
-      .reduce((latest, cost) => (cost.date > latest ? cost.date : latest), new Date(0));
-
-    const now = new Date();
-    let endDate = new Date(Math.max(lastInvoiceDate.getTime(), lastCostDate.getTime(), now.getTime()));
-    endDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  const getClientMonthlyData = (clientId: string, year = 2025): MonthlyClientData[] => {
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 1);
 
     const months: { month: string; year: number }[] = [];
     let current = new Date(startDate);
