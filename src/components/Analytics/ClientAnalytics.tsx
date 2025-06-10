@@ -30,7 +30,10 @@ const ClientAnalytics: React.FC = () => {
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || '');
   
   const selectedClient = clients.find(c => c.id === selectedClientId);
-  const monthlyData = selectedClient ? getClientMonthlyData(selectedClientId) : [];
+  // Limit to the last 12 months to display a full year of data
+  const monthlyData = selectedClient
+    ? getClientMonthlyData(selectedClientId).slice(-12)
+    : [];
 
   const chartData = {
     labels: monthlyData.map(d => d.month),
@@ -241,12 +244,12 @@ const ClientAnalytics: React.FC = () => {
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 gap-8 mb-8">
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 Évolution Mensuelle
               </h3>
-              <div className="h-80">
+              <div className="h-96 w-full">
                 <Line data={chartData} options={chartOptions} />
               </div>
             </div>
@@ -255,7 +258,7 @@ const ClientAnalytics: React.FC = () => {
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 Marges Bénéficiaires
               </h3>
-              <div className="h-80">
+              <div className="h-96 w-full">
                 <Bar data={marginData} options={chartOptions} />
               </div>
             </div>
