@@ -10,7 +10,7 @@ import {
   AnnualReport,
   MonthlyClientData
 } from '../types';
-import { format, subMonths, getMonth, getYear } from 'date-fns';
+import { format, subMonths, addMonths, getYear } from 'date-fns';
 
 const API_URL = 'http://localhost:3000';
 const LOCAL_STORAGE_KEY = 'maintup-data';
@@ -403,13 +403,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const getClientMonthlyData = (clientId: string): MonthlyClientData[] => {
-    const months = Array.from({ length: 12 }, (_, i) => {
-      const date = subMonths(new Date(), 11 - i);
-      return {
-        month: format(date, 'MMM'),
-        year: getYear(date)
-      };
-    });
+    const startDate = new Date(2025, 0, 1);
+
+    const lastInvoiceDate = invoices
+      .filter(inv => inv.clientId === clientId)
+      .reduce((latest, inv) => (inv.issueDate > latest ? inv.issueDate : latest), new Date(0));
+
+    const lastCostDate = costs
+      .filter(cost => cost.clientId === clientId)
+      .reduce((latest, cost) => (cost.date > latest ? cost.date : latest), new Date(0));
+
+    const now = new Date();
+    let endDate = new Date(Math.max(lastInvoiceDate.getTime(), lastCostDate.getTime(), now.getTime()));
+    endDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
+    const months: { month: string; year: number }[] = [];
+    let current = new Date(startDate);
+    while (current <= endDate) {
+      months.push({ month: format(current, 'MMM'), year: getYear(current) });
+      current = addMonths(current, 1);
+    }
 
     return months.map(({ month, year }) => {
       const monthKey = `${month} ${year}`;
