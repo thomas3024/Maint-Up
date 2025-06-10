@@ -51,6 +51,9 @@ La barre latérale donne accès aux différentes pages :
 - Calcul automatique du chiffre d'affaires, des marges et du bénéfice.
 - Visualisation des performances par client et par période.
 - Export du rapport annuel en PDF.
+- Mode sécurisé : l'application démarre en mode "Visualisation". Cliquez sur le
+  bouton "Mode" pour passer administrateur et saisissez le mot de passe
+  **THABARY**.
 
 ## Licence
 
