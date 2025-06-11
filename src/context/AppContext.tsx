@@ -361,7 +361,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     return months.map(month => {
       const monthRevenue = invoices
-        .filter(inv => inv.status === 'paid' && format(inv.issueDate, 'MMM yyyy') === month)
+        .filter(
+          inv =>
+            (inv.status === 'paid' || inv.status === 'pending') &&
+            format(inv.issueDate, 'MMM yyyy') === month
+        )
         .reduce((sum, inv) => sum + inv.amountHT, 0);
       
       const monthCosts = costs
@@ -382,7 +386,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const getTotalRevenue = () => {
-    return invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.amountHT, 0);
+    return invoices
+      .filter(inv => inv.status === 'paid' || inv.status === 'pending')
+      .reduce((sum, inv) => sum + inv.amountHT, 0);
   };
 
   const getTotalCosts = () => {
@@ -395,12 +401,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const getClientRevenue = (clientId: string) => {
     return invoices
-      .filter(inv => inv.clientId === clientId && inv.status === 'paid')
+      .filter(
+        inv =>
+          inv.clientId === clientId &&
+          (inv.status === 'paid' || inv.status === 'pending')
+      )
       .reduce((sum, inv) => sum + inv.amountHT, 0);
   };
 
   const getClientProfit = (clientId: string) => {
-    const clientInvoices = invoices.filter(inv => inv.clientId === clientId && inv.status === 'paid');
+    const clientInvoices = invoices.filter(
+      inv =>
+        inv.clientId === clientId &&
+        (inv.status === 'paid' || inv.status === 'pending')
+    );
     const clientCosts = costs.filter(cost => cost.clientId === clientId);
     
     const revenue = clientInvoices.reduce((sum, inv) => sum + inv.amountHT, 0);
@@ -423,9 +437,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return months.map(({ month, year }) => {
       const monthKey = `${month} ${year}`;
       
-      const clientInvoices = invoices.filter(inv => 
-        inv.clientId === clientId && 
-        inv.status === 'paid' && 
+      const clientInvoices = invoices.filter(inv =>
+        inv.clientId === clientId &&
+        (inv.status === 'paid' || inv.status === 'pending') &&
         format(inv.issueDate, 'MMM yyyy') === monthKey
       );
       
@@ -452,8 +466,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const getAnnualReport = (year: number): AnnualReport => {
-    const yearInvoices = invoices.filter(inv => 
-      inv.status === 'paid' && getYear(inv.issueDate) === year
+    const yearInvoices = invoices.filter(inv =>
+      (inv.status === 'paid' || inv.status === 'pending') &&
+      getYear(inv.issueDate) === year
     );
     const yearCosts = costs.filter(cost => getYear(cost.date) === year);
 
