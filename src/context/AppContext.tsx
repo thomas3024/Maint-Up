@@ -481,11 +481,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const clientsData = clients.map(client => {
       const clientInvoices = yearInvoices.filter(inv => inv.clientId === client.id);
       const clientCosts = yearCosts.filter(cost => cost.clientId === client.id);
-      
+
       const revenue = clientInvoices.reduce((sum, inv) => sum + inv.amountHT, 0);
       const costs = clientCosts.reduce((sum, cost) => sum + cost.amount, 0);
       const profit = revenue - costs;
       const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+      const revenueShare = totalRevenue > 0 ? (revenue / totalRevenue) * 100 : 0;
 
       return {
         clientId: client.id,
@@ -494,6 +495,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         costs,
         profit,
         margin,
+        revenueShare,
         invoicesCount: clientInvoices.length
       };
     });
