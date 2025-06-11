@@ -77,7 +77,7 @@ const AnnualReport: React.FC = () => {
 
   // Client distribution chart
   const clientChartData = {
-    labels: report.clientsData.map(c => c.clientName),
+    labels: report.clientsData.map(c => `${c.clientName} (${c.revenueShare.toFixed(1)}%)`),
     datasets: [
       {
         label: 'Revenus par client',
@@ -348,6 +348,9 @@ const AnnualReport: React.FC = () => {
                   Marge
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Part CA
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Factures
                 </th>
               </tr>
@@ -377,10 +380,15 @@ const AnnualReport: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className={`text-sm font-semibold ${
-                      client.margin >= 20 ? 'text-green-600' : 
+                      client.margin >= 20 ? 'text-green-600' :
                       client.margin >= 10 ? 'text-yellow-600' : 'text-red-600'
                     }`}>
                       {client.margin.toFixed(1)}%
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-semibold text-gray-900">
+                      {client.revenueShare.toFixed(1)}%
                     </div>
                   </td>
                   <td className="px-6 py-4">
