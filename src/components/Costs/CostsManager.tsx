@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3 } from 'lucide-react';
+import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3, Home } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import CostForm from './CostForm';
 import { Cost } from '../../types';
@@ -18,6 +18,7 @@ const CostsManager: React.FC = () => {
     { id: 'subcontracting', label: '🤝 Sous-traitance', icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
     { id: 'materials', label: '🔧 Matériaux', icon: Wrench, color: 'text-orange-600', bg: 'bg-orange-50' },
     { id: 'transport', label: '🚛 Transport', icon: Truck, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+    { id: 'housing', label: '🏠 Logements', icon: Home, color: 'text-teal-600', bg: 'bg-teal-50' },
     { id: 'other', label: '📋 Autre', icon: FileText, color: 'text-gray-600', bg: 'bg-gray-50' },
   ];
 
