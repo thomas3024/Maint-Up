@@ -354,8 +354,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Analytics
   const getMonthlyData = (): MonthlyData[] => {
+    // Always display data starting from January 2025
     const months = Array.from({ length: 12 }, (_, i) => {
-      const date = subMonths(new Date(), 11 - i);
+      const date = new Date(2025, i, 1);
       return format(date, 'MMM yyyy');
     });
 

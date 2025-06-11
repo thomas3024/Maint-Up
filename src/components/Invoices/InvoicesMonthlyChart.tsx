@@ -17,8 +17,9 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 const InvoicesMonthlyChart: React.FC = () => {
   const { invoices } = useAppContext();
 
+  // Show invoice data for each month of the year 2025
   const months = Array.from({ length: 12 }, (_, i) => {
-    const date = subMonths(new Date(), 11 - i);
+    const date = new Date(2025, i, 1);
     return format(date, 'MMM yyyy');
   });
 
