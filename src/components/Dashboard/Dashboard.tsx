@@ -49,7 +49,7 @@ const Dashboard: React.FC = () => {
           change="+12% ce mois"
           changeType="positive"
           icon={TrendingUp}
-          color="green"
+          color="blue"
         />
         
         <StatsCard
@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
           change="+5% ce mois"
           changeType="negative"
           icon={DollarSign}
-          color="blue"
+          color="red"
         />
         
         <StatsCard

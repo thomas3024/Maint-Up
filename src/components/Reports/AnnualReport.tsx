@@ -48,15 +48,6 @@ const AnnualReport: React.FC = () => {
       {
         label: 'Revenus HT',
         data: report.monthlyBreakdown.map(d => d.revenue),
-        borderColor: '#10B981',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-      },
-      {
-        label: 'Coûts',
-        data: report.monthlyBreakdown.map(d => d.costs),
         borderColor: '#3B82F6',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         borderWidth: 3,
@@ -64,10 +55,19 @@ const AnnualReport: React.FC = () => {
         tension: 0.4,
       },
       {
+        label: 'Coûts',
+        data: report.monthlyBreakdown.map(d => d.costs),
+        borderColor: '#EF4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+      },
+      {
         label: 'Bénéfices',
         data: report.monthlyBreakdown.map(d => d.profit),
-        borderColor: '#8B5CF6',
-        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
         borderWidth: 3,
         fill: true,
         tension: 0.4,
@@ -217,44 +217,44 @@ const AnnualReport: React.FC = () => {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-pastel-green p-6 rounded-xl">
+        <div className="bg-pastel-blue p-6 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-green-800 opacity-70">Revenus Totaux</p>
-              <p className="text-2xl font-bold text-green-900 mt-2">
+              <p className="text-sm font-medium text-blue-800 opacity-70">Revenus Totaux</p>
+              <p className="text-2xl font-bold text-blue-900 mt-2">
                 {report.totalRevenue.toLocaleString('fr-FR')} €
               </p>
             </div>
             <div className="p-3 bg-white bg-opacity-50 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-green-600" />
+              <TrendingUp className="h-6 w-6 text-blue-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-pastel-blue p-6 rounded-xl">
+        <div className="bg-pastel-coral p-6 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-blue-800 opacity-70">Coûts Totaux</p>
-              <p className="text-2xl font-bold text-blue-900 mt-2">
+              <p className="text-sm font-medium text-red-800 opacity-70">Coûts Totaux</p>
+              <p className="text-2xl font-bold text-red-900 mt-2">
                 {report.totalCosts.toLocaleString('fr-FR')} €
               </p>
             </div>
             <div className="p-3 bg-white bg-opacity-50 rounded-lg">
-              <TrendingDown className="h-6 w-6 text-blue-600" />
+              <TrendingDown className="h-6 w-6 text-red-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-pastel-purple p-6 rounded-xl">
+        <div className="bg-pastel-green p-6 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-purple-800 opacity-70">Bénéfice Net</p>
-              <p className="text-2xl font-bold text-purple-900 mt-2">
+              <p className="text-sm font-medium text-green-800 opacity-70">Bénéfice Net</p>
+              <p className="text-2xl font-bold text-green-900 mt-2">
                 {report.totalProfit.toLocaleString('fr-FR')} €
               </p>
             </div>
             <div className="p-3 bg-white bg-opacity-50 rounded-lg">
-              <Receipt className="h-6 w-6 text-purple-600" />
+              <Receipt className="h-6 w-6 text-green-600" />
             </div>
           </div>
         </div>
@@ -359,12 +359,12 @@ const AnnualReport: React.FC = () => {
                     <div className="text-sm font-medium text-gray-900">{client.clientName}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-semibold text-green-600">
+                    <div className="text-sm font-semibold text-blue-600">
                       {client.revenue.toLocaleString('fr-FR')} €
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-semibold text-blue-600">
+                    <div className="text-sm font-semibold text-red-600">
                       {client.costs.toLocaleString('fr-FR')} €
                     </div>
                   </td>
