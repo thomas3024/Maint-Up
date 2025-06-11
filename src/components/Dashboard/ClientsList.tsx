@@ -3,13 +3,19 @@ import { Building2, TrendingUp, TrendingDown } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
 const ClientsList: React.FC = () => {
-  const { clients, getClientProfit } = useAppContext();
+  const { clients, getClientProfit, getClientRevenue } = useAppContext();
 
-  const clientsWithProfit = clients.map(client => ({
-    ...client,
-    profit: getClientProfit(client.id),
-    profitMargin: client.totalInvoices > 0 ? ((getClientProfit(client.id) / client.totalInvoices) * 100) : 0
-  })).sort((a, b) => b.profit - a.profit);
+  const clientsWithProfit = clients.map(client => {
+    const revenue = getClientRevenue(client.id);
+    const profit = getClientProfit(client.id);
+    const profitMargin = revenue > 0 ? ((profit / revenue) * 100) : 0;
+    return {
+      ...client,
+      revenue,
+      profit,
+      profitMargin
+    };
+  }).sort((a, b) => b.profit - a.profit);
 
   return (
     <div className="space-y-4">
@@ -32,7 +38,7 @@ const ClientsList: React.FC = () => {
             <div className="text-right">
               <p className="text-sm text-gray-600 dark:text-gray-400">CA Total</p>
               <p className="font-semibold text-gray-900 dark:text-gray-100">
-                {client.totalInvoices.toLocaleString('fr-FR')} €
+                {client.revenue.toLocaleString('fr-FR')} €
               </p>
             </div>
             

@@ -43,6 +43,7 @@ interface AppContextType {
   getTotalRevenue: () => number;
   getTotalCosts: () => number;
   getTotalProfit: () => number;
+  getClientRevenue: (clientId: string) => number;
   getClientProfit: (clientId: string) => number;
   getClientMonthlyData: (clientId: string, year?: number) => MonthlyClientData[];
   getAnnualReport: (year: number) => AnnualReport;
@@ -392,6 +393,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return getTotalRevenue() - getTotalCosts();
   };
 
+  const getClientRevenue = (clientId: string) => {
+    return invoices
+      .filter(inv => inv.clientId === clientId && inv.status === 'paid')
+      .reduce((sum, inv) => sum + inv.amountHT, 0);
+  };
+
   const getClientProfit = (clientId: string) => {
     const clientInvoices = invoices.filter(inv => inv.clientId === clientId && inv.status === 'paid');
     const clientCosts = costs.filter(cost => cost.clientId === clientId);
@@ -546,6 +553,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     getTotalRevenue,
     getTotalCosts,
     getTotalProfit,
+    getClientRevenue,
     getClientProfit,
     getClientMonthlyData,
     getAnnualReport,
