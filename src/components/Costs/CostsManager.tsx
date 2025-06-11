@@ -203,7 +203,7 @@ const CostsManager: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-blue-600">
+                      <div className="text-sm font-semibold text-red-600">
                         {cost.amount.toLocaleString('fr-FR')} €
                       </div>
                     </td>

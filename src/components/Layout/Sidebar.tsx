@@ -21,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeView, onViewCh
     { id: 'dashboard', label: 'Tableau de Bord', icon: BarChart3, color: 'text-blue-600' },
     { id: 'clients', label: 'Clients', icon: Users, color: 'text-green-600' },
     { id: 'invoices', label: 'Factures', icon: Receipt, color: 'text-red-600' },
-    { id: 'costs', label: 'Coûts', icon: DollarSign, color: 'text-blue-600' },
+    { id: 'costs', label: 'Coûts', icon: DollarSign, color: 'text-red-600' },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp, color: 'text-purple-600' },
     { id: 'reports', label: 'Rapports', icon: FileText, color: 'text-gray-600' },
   ];

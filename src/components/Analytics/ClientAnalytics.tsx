@@ -41,15 +41,6 @@ const ClientAnalytics: React.FC = () => {
       {
         label: 'Revenus HT',
         data: monthlyData.map(d => d.revenue),
-        borderColor: '#10B981',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-      },
-      {
-        label: 'Coûts',
-        data: monthlyData.map(d => d.costs),
         borderColor: '#3B82F6',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         borderWidth: 3,
@@ -57,10 +48,19 @@ const ClientAnalytics: React.FC = () => {
         tension: 0.4,
       },
       {
+        label: 'Coûts',
+        data: monthlyData.map(d => d.costs),
+        borderColor: '#EF4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+      },
+      {
         label: 'Bénéfices',
         data: monthlyData.map(d => d.profit),
-        borderColor: '#8B5CF6',
-        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
         borderWidth: 3,
         fill: true,
         tension: 0.4,
@@ -184,42 +184,42 @@ const ClientAnalytics: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-pastel-green p-4 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-800 opacity-70">Revenus Totaux</p>
-                    <p className="text-xl font-bold text-green-900 mt-1">
-                      {totalRevenue.toLocaleString('fr-FR')} €
-                    </p>
-                  </div>
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                </div>
-              </div>
-
               <div className="bg-pastel-blue p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-blue-800 opacity-70">Coûts Totaux</p>
+                    <p className="text-sm font-medium text-blue-800 opacity-70">Revenus Totaux</p>
                     <p className="text-xl font-bold text-blue-900 mt-1">
-                      {totalCosts.toLocaleString('fr-FR')} €
+                      {totalRevenue.toLocaleString('fr-FR')} €
                     </p>
                   </div>
-                  <TrendingDown className="h-5 w-5 text-blue-600" />
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
                 </div>
               </div>
 
-              <div className="bg-pastel-purple p-4 rounded-lg">
+              <div className="bg-pastel-coral p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-purple-800 opacity-70">Bénéfice Net</p>
+                    <p className="text-sm font-medium text-red-800 opacity-70">Coûts Totaux</p>
+                    <p className="text-xl font-bold text-red-900 mt-1">
+                      {totalCosts.toLocaleString('fr-FR')} €
+                    </p>
+                  </div>
+                  <TrendingDown className="h-5 w-5 text-red-600" />
+                </div>
+              </div>
+
+              <div className="bg-pastel-green p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-800 opacity-70">Bénéfice Net</p>
                     <p className={`text-xl font-bold mt-1 ${
-                      totalProfit >= 0 ? 'text-purple-900' : 'text-red-600'
+                      totalProfit >= 0 ? 'text-green-900' : 'text-red-600'
                     }`}>
                       {totalProfit.toLocaleString('fr-FR')} €
                     </p>
                   </div>
                   {totalProfit >= 0 ? (
-                    <TrendingUp className="h-5 w-5 text-purple-600" />
+                    <TrendingUp className="h-5 w-5 text-green-600" />
                   ) : (
                     <TrendingDown className="h-5 w-5 text-red-600" />
                   )}
@@ -300,12 +300,12 @@ const ClientAnalytics: React.FC = () => {
                         <div className="text-sm font-medium text-gray-900">{data.month}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-semibold text-green-600">
+                        <div className="text-sm font-semibold text-blue-600">
                           {data.revenue.toLocaleString('fr-FR')} €
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-semibold text-blue-600">
+                        <div className="text-sm font-semibold text-red-600">
                           {data.costs.toLocaleString('fr-FR')} €
                         </div>
                       </td>

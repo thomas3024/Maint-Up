@@ -57,8 +57,8 @@ const CostForm: React.FC<CostFormProps> = ({ cost, onClose }) => {
       <div className="bg-white rounded-xl shadow-lg w-full max-w-lg">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-pastel-blue rounded-lg">
-              <DollarSign className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-pastel-coral rounded-lg">
+              <DollarSign className="h-5 w-5 text-red-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900">
               {cost ? 'Modifier le Coût' : 'Nouveau Coût'}
