@@ -78,5 +78,7 @@ export interface ClientAnnualData {
   costs: number;
   profit: number;
   margin: number;
+  /** Part du chiffre d'affaires total sur l'année (en %) */
+  revenueShare: number;
   invoicesCount: number;
 }
