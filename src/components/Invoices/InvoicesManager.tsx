@@ -73,6 +73,14 @@ const InvoicesManager: React.FC = () => {
   const totalTTC = filteredInvoices.reduce((sum, inv) => sum + inv.amountTTC, 0);
   const paidAmountHT = filteredInvoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.amountHT, 0);
 
+  const invoicesByClient = filteredInvoices.reduce<Record<string, { clientName: string; invoices: Invoice[] }>>((acc, inv) => {
+    if (!acc[inv.clientId]) {
+      acc[inv.clientId] = { clientName: inv.clientName, invoices: [] };
+    }
+    acc[inv.clientId].invoices.push(inv);
+    return acc;
+  }, {});
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
@@ -205,8 +213,15 @@ const InvoicesManager: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredInvoices.map((invoice) => (
-                <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
+              {Object.values(invoicesByClient).map(group => (
+                <React.Fragment key={group.clientName}>
+                  <tr className="bg-gray-100">
+                    <td colSpan={8} className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      {group.clientName}
+                    </td>
+                  </tr>
+                  {group.invoices.map(invoice => (
+                    <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div>
                       <div className="text-sm font-medium text-gray-900">{invoice.number}</div>
@@ -277,13 +292,15 @@ const InvoicesManager: React.FC = () => {
                             onClick={() => handleDelete(invoice.id)}
                             className="text-red-600 hover:text-red-800 text-sm font-medium"
                           >
-                            Supprimer
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+                          Supprimer
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
                 </tr>
+                  ))}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
