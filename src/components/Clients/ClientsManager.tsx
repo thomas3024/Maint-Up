@@ -5,7 +5,7 @@ import ClientForm from './ClientForm';
 import { Client } from '../../types';
 
 const ClientsManager: React.FC = () => {
-  const { clients, currentUser, deleteClient, getClientProfit } = useAppContext();
+  const { clients, currentUser, deleteClient, getClientProfit, getClientRevenue } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -67,8 +67,9 @@ const ClientsManager: React.FC = () => {
       {/* Clients Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredClients.map((client) => {
+          const revenue = getClientRevenue(client.id);
           const profit = getClientProfit(client.id);
-          const profitMargin = client.totalInvoices > 0 ? ((profit / client.totalInvoices) * 100) : 0;
+          const profitMargin = revenue > 0 ? ((profit / revenue) * 100) : 0;
           
           return (
             <div key={client.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
@@ -119,7 +120,7 @@ const ClientsManager: React.FC = () => {
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">CA Total</p>
                     <p className="text-lg font-semibold text-gray-900">
-                      {client.totalInvoices.toLocaleString('fr-FR')} €
+                      {revenue.toLocaleString('fr-FR')} €
                     </p>
                   </div>
                   <div>
