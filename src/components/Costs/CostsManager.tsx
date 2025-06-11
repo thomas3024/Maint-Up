@@ -58,6 +58,14 @@ const CostsManager: React.FC = () => {
 
   const totalAmount = filteredCosts.reduce((sum, cost) => sum + cost.amount, 0);
 
+  const costsByClient = filteredCosts.reduce<Record<string, { clientName: string; costs: Cost[] }>>((acc, cost) => {
+    if (!acc[cost.clientId]) {
+      acc[cost.clientId] = { clientName: cost.clientName, costs: [] };
+    }
+    acc[cost.clientId].costs.push(cost);
+    return acc;
+  }, {});
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
@@ -173,64 +181,75 @@ const CostsManager: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredCosts.map((cost) => {
-                const categoryInfo = getCategoryInfo(cost.category);
-                const Icon = categoryInfo.icon;
-                const invoiceInfo = getInvoiceInfo(cost.invoiceId);
-                
-                return (
-                  <tr key={cost.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{cost.description}</div>
+              {Object.values(costsByClient).map(group => (
+                <React.Fragment key={group.clientName}>
+                  <tr className="bg-gray-100">
+                    <td
+                      colSpan={currentUser?.role === 'admin' ? 7 : 6}
+                      className="px-6 py-3 text-left text-sm font-semibold text-gray-700"
+                    >
+                      {group.clientName}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {cost.clientName}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {invoiceInfo ? (
-                        <div>
-                          <div className="font-medium">{invoiceInfo.number}</div>
-                          <div className="text-xs text-gray-500">{invoiceInfo.amountHT.toLocaleString('fr-FR')} € HT</div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">Non associé</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <Icon className={`h-4 w-4 ${categoryInfo.color}`} />
-                        <span className="text-sm text-gray-900">{categoryInfo.label}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-red-600">
-                        {cost.amount.toLocaleString('fr-FR')} €
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {cost.date.toLocaleDateString('fr-FR')}
-                    </td>
-                    {currentUser?.role === 'admin' && (
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleEdit(cost)}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                          >
-                            Modifier
-                          </button>
-                          <button
-                            onClick={() => handleDelete(cost.id)}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
-                          >
-                            Supprimer
-                          </button>
-                        </div>
-                      </td>
-                    )}
                   </tr>
-                );
-              })}
+                  {group.costs.map(cost => {
+                    const categoryInfo = getCategoryInfo(cost.category);
+                    const Icon = categoryInfo.icon;
+                    const invoiceInfo = getInvoiceInfo(cost.invoiceId);
+                    return (
+                      <tr key={cost.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">{cost.description}</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {cost.clientName}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {invoiceInfo ? (
+                            <div>
+                              <div className="font-medium">{invoiceInfo.number}</div>
+                              <div className="text-xs text-gray-500">{invoiceInfo.amountHT.toLocaleString('fr-FR')} € HT</div>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">Non associé</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            <Icon className={`h-4 w-4 ${categoryInfo.color}`} />
+                            <span className="text-sm text-gray-900">{categoryInfo.label}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-semibold text-red-600">
+                            {cost.amount.toLocaleString('fr-FR')} €
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {cost.date.toLocaleDateString('fr-FR')}
+                        </td>
+                        {currentUser?.role === 'admin' && (
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => handleEdit(cost)}
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              >
+                                Modifier
+                              </button>
+                              <button
+                                onClick={() => handleDelete(cost.id)}
+                                className="text-red-600 hover:text-red-800 text-sm font-medium"
+                              >
+                                Supprimer
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
             </tbody>
           </table>
         </div>
