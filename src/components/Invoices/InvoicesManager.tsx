@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Search, Receipt, Clock, CheckCircle, AlertCircle, Download, Eye } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import InvoiceForm from './InvoiceForm';
+import InvoicesMonthlyChart from './InvoicesMonthlyChart';
 import { Invoice } from '../../types';
 
 const InvoicesManager: React.FC = () => {
@@ -136,6 +137,14 @@ const InvoicesManager: React.FC = () => {
             À déclarer
           </p>
         </div>
+      </div>
+
+      {/* Monthly Chart */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Factures par Mois
+        </h2>
+        <InvoicesMonthlyChart />
       </div>
 
       {/* Filters */}
