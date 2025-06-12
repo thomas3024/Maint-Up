@@ -12,7 +12,7 @@ import {
 } from '../types';
 import { format, subMonths, addMonths, getYear } from 'date-fns';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const LOCAL_STORAGE_KEY = 'maintup-data';
 
 interface AppContextType {
@@ -37,6 +37,9 @@ interface AppContextType {
   addCost: (cost: Omit<Cost, 'id'>) => void;
   updateCost: (id: string, cost: Partial<Cost>) => void;
   deleteCost: (id: string) => void;
+
+  // Manual sync
+  syncData: () => Promise<void>;
   
   // Analytics
   getMonthlyData: () => MonthlyData[];
@@ -552,6 +555,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return pdfUrl;
   };
 
+  const syncData = async (): Promise<void> => {
+    try {
+      await fetch(`${API_URL}/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clients, invoices, costs })
+      });
+    } catch (e) {
+      console.error('Sync failed', e);
+    }
+  };
+
   const value: AppContextType = {
     currentUser,
     setCurrentUser,
@@ -575,7 +590,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     getClientProfit,
     getClientMonthlyData,
     getAnnualReport,
-    exportToPDF
+    exportToPDF,
+    syncData
   };
 
   return (

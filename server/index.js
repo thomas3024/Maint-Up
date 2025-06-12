@@ -70,6 +70,14 @@ app.use('/clients', createRouter('clients'));
 app.use('/invoices', createRouter('invoices'));
 app.use('/costs', createRouter('costs'));
 
+// Endpoint to replace the entire dataset (used for manual sync)
+app.post('/sync', (req, res) => {
+  const { clients = [], invoices = [], costs = [] } = req.body || {};
+  const data = { clients, invoices, costs };
+  writeData(data);
+  res.sendStatus(204);
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
