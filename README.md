@@ -1,4 +1,4 @@
-# Maint-Up
+# Maint-Up Comptabilité
 
 Maint-Up est une application web permettant de suivre l'activité financiere d'une petite entreprise ou d'un freelance. Elle centralise les clients, les factures et les coûts afin de fournir un tableau de bord complet et des rapports annuels.
 
