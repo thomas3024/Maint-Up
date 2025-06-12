@@ -8,10 +8,12 @@ import InvoicesManager from './components/Invoices/InvoicesManager';
 import CostsManager from './components/Costs/CostsManager';
 import ClientAnalytics from './components/Analytics/ClientAnalytics';
 import AnnualReport from './components/Reports/AnnualReport';
+import SettingsModal from './components/Settings/SettingsModal';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const stored = localStorage.getItem('theme') as 'light' | 'dark' | null;
     if (stored) return stored;
@@ -54,6 +56,7 @@ function App() {
           onThemeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}
           activeView={activeView}
           onViewChange={setActiveView}
+          onSettingsOpen={() => setSettingsOpen(true)}
         />
 
         <Sidebar
@@ -66,6 +69,7 @@ function App() {
         <main className="mx-auto max-w-7xl p-6">
           {renderActiveView()}
         </main>
+        <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       </div>
     </AppProvider>
   );

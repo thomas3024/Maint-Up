@@ -8,9 +8,10 @@ interface HeaderProps {
   onThemeToggle: () => void;
   activeView: string;
   onViewChange: (view: string) => void;
+  onSettingsOpen: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle, theme, onThemeToggle, activeView, onViewChange }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuToggle, theme, onThemeToggle, activeView, onViewChange, onSettingsOpen }) => {
   const { currentUser, setCurrentUser } = useAppContext();
 
   const handleRoleToggle = () => {
@@ -85,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, theme, onThemeToggle, act
             </span>
           </div>
 
-          <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <button onClick={onSettingsOpen} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
             <Settings className="h-5 w-5 text-gray-600 dark:text-gray-300" />
           </button>
         </div>
