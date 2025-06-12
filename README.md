@@ -54,6 +54,10 @@ La barre latérale donne accès aux différentes pages :
 - Mode sécurisé : l'application démarre en mode "Visualisation". Cliquez sur le
   bouton "Mode" pour passer administrateur et saisissez le mot de passe
   **THABARY**.
+## Déploiement sur Vercel
+
+Ce projet inclut un fichier `vercel.json` qui associe automatiquement l'application au domaine https://maint-up.vercel.app lors du déploiement.
+
 
 ## Licence
 
