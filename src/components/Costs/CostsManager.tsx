@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { format } from 'date-fns';
 import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3, Home } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import CostForm from './CostForm';
@@ -65,6 +66,20 @@ const CostsManager: React.FC = () => {
     acc[cost.clientId].costs.push(cost);
     return acc;
   }, {});
+
+  const months = Array.from({ length: 12 }, (_, i) =>
+    format(new Date(2025, i, 1), 'MMM yyyy')
+  );
+
+  const monthlyCosts = uniqueClients.map(client => {
+    const clientCosts = filteredCosts.filter(c => c.clientName === client);
+    const totals = months.map(month =>
+      clientCosts
+        .filter(c => format(c.date, 'MMM yyyy') === month)
+        .reduce((sum, c) => sum + c.amount, 0)
+    );
+    return { client, totals };
+  });
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -253,6 +268,41 @@ const CostsManager: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Monthly Costs Grid */}
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto mt-8">
+        <table className="min-w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Client
+              </th>
+              {months.map(month => (
+                <th
+                  key={month}
+                  className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {month}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {monthlyCosts.map(row => (
+              <tr key={row.client} className="hover:bg-gray-50">
+                <td className="px-4 py-2 font-medium text-gray-900">
+                  {row.client}
+                </td>
+                {row.totals.map((total, idx) => (
+                  <td key={idx} className="px-4 py-2 text-sm text-blue-600 font-semibold">
+                    {total > 0 ? `${total.toLocaleString('fr-FR')} €` : '-'}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {filteredCosts.length === 0 && (
