@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, theme, onThemeToggle, act
             <Menu className="h-5 w-5 text-gray-600 dark:text-gray-300" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Maint Up</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Maint Up Comptabilité</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">Comptabilité & Analytics</p>
           </div>
         </div>
