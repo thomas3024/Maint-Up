@@ -80,8 +80,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const [apiAvailable, setApiAvailable] = useState(true);
 
-  const persist = (c = clients, i = invoices, co = costs) => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ clients: c, invoices: i, costs: co }));
+  const persist = (
+    c?: Client[],
+    i?: Invoice[],
+    co?: Cost[]
+  ) => {
+    const data = {
+      clients: c ?? clients,
+      invoices: i ?? invoices,
+      costs: co ?? costs
+    };
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
   };
 
   useEffect(() => {
