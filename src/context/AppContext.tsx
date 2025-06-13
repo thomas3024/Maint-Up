@@ -86,22 +86,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [costs, setCosts] = useState<Cost[]>([]);
 
   const [apiAvailable, setApiAvailable] = useState(true);
+  const [unsynced, setUnsynced] = useState(false);
 
   const persist = (
     c?: Client[],
     i?: Invoice[],
-    co?: Cost[]
+    co?: Cost[],
+    dirty?: boolean
   ) => {
+    if (dirty !== undefined) setUnsynced(dirty);
     const data = {
       clients: c ?? clients,
       invoices: i ?? invoices,
-      costs: co ?? costs
+      costs: co ?? costs,
+      unsynced: dirty ?? unsynced
     };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
   };
 
   useEffect(() => {
     const loadData = async () => {
+      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const storedData = stored ? JSON.parse(stored) : null;
+      if (storedData && typeof storedData.unsynced === 'boolean') {
+        setUnsynced(storedData.unsynced);
+      }
       try {
         const [cRes, iRes, coRes] = await Promise.all([
           fetch(`${API_URL}/clients`),
@@ -123,15 +132,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }));
         const co = costsData.map((cost: any) => ({ ...cost, date: new Date(cost.date) }));
 
-        setClients(c);
-        setInvoices(i);
-        setCosts(co);
-        persist(c, i, co);
+        if (storedData?.unsynced) {
+          const localClients = storedData.clients.map((cl: any) => ({ ...cl, createdAt: new Date(cl.createdAt) }));
+          const localInvoices = storedData.invoices.map((inv: any) => ({
+            ...inv,
+            issueDate: new Date(inv.issueDate),
+            dueDate: new Date(inv.dueDate)
+          }));
+          const localCosts = storedData.costs.map((cost: any) => ({ ...cost, date: new Date(cost.date) }));
+
+          setClients(localClients);
+          setInvoices(localInvoices);
+          setCosts(localCosts);
+          await syncData(localClients, localInvoices, localCosts);
+        } else {
+          setClients(c);
+          setInvoices(i);
+          setCosts(co);
+          persist(c, i, co, false);
+        }
       } catch (err) {
         setApiAvailable(false);
-        const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (stored) {
-          const { clients: c, invoices: i, costs: co } = JSON.parse(stored);
+        if (storedData) {
+          const { clients: c, invoices: i, costs: co } = storedData;
           setClients(c.map((cl: any) => ({ ...cl, createdAt: new Date(cl.createdAt) })));
           setInvoices(i.map((inv: any) => ({
             ...inv,
@@ -163,7 +186,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       newClient.createdAt = new Date(newClient.createdAt);
       setClients(prev => {
         const updated = [...prev, newClient];
-        persist(updated);
+        persist(updated, undefined, undefined, true);
         return updated;
       });
     } catch (e) {
@@ -203,7 +226,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const updatedList = prev.map(client =>
           client.id === id ? { ...client, ...updates } : client
         );
-        persist(updatedList);
+        persist(updatedList, undefined, undefined, true);
         return updatedList;
       });
     }
@@ -214,20 +237,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await fetch(`${API_URL}/clients/${id}`, { method: 'DELETE' });
     } catch (e) {
       // offline, just update local data
+      setUnsynced(true);
     }
     setClients(prev => {
       const updated = prev.filter(client => client.id !== id);
-      persist(updated);
+      persist(updated, undefined, undefined, true);
       return updated;
     });
     setInvoices(prev => {
       const updated = prev.filter(invoice => invoice.clientId !== id);
-      persist(undefined, updated);
+      persist(undefined, updated, undefined, true);
       return updated;
     });
     setCosts(prev => {
       const updated = prev.filter(cost => cost.clientId !== id);
-      persist(undefined, undefined, updated);
+      persist(undefined, undefined, updated, true);
       return updated;
     });
   };
@@ -259,9 +283,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
       setInvoices(prev => {
         const updated = [...prev, newInvoice];
-        persist(undefined, updated);
+        persist(undefined, updated, undefined, true);
         return updated;
       });
+      setUnsynced(true);
     }
   };
 
@@ -284,9 +309,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (e) {
       setInvoices(prev => {
         const updatedList = prev.map(inv => (inv.id === id ? { ...inv, ...updates } : inv));
-        persist(undefined, updatedList);
+        persist(undefined, updatedList, undefined, true);
         return updatedList;
       });
+      setUnsynced(true);
     }
   };
 
@@ -295,15 +321,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await fetch(`${API_URL}/invoices/${id}`, { method: 'DELETE' });
     } catch (e) {
       // offline
+      setUnsynced(true);
     }
     setInvoices(prev => {
       const updated = prev.filter(invoice => invoice.id !== id);
-      persist(undefined, updated);
+      persist(undefined, updated, undefined, true);
       return updated;
     });
     setCosts(prev => {
       const updated = prev.filter(cost => cost.invoiceId !== id);
-      persist(undefined, undefined, updated);
+      persist(undefined, undefined, updated, true);
       return updated;
     });
   };
@@ -328,9 +355,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const newCost: Cost = { id: Date.now().toString(), ...costData };
       setCosts(prev => {
         const updated = [...prev, newCost];
-        persist(undefined, undefined, updated);
+        persist(undefined, undefined, updated, true);
         return updated;
       });
+      setUnsynced(true);
     }
   };
 
@@ -352,9 +380,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (e) {
       setCosts(prev => {
         const updatedList = prev.map(cost => (cost.id === id ? { ...cost, ...updates } : cost));
-        persist(undefined, undefined, updatedList);
+        persist(undefined, undefined, updatedList, true);
         return updatedList;
       });
+      setUnsynced(true);
     }
   };
 
@@ -363,10 +392,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await fetch(`${API_URL}/costs/${id}`, { method: 'DELETE' });
     } catch (e) {
       // offline
+      setUnsynced(true);
     }
     setCosts(prev => {
       const updated = prev.filter(cost => cost.id !== id);
-      persist(undefined, undefined, updated);
+      persist(undefined, undefined, updated, true);
       return updated;
     });
   };
@@ -571,17 +601,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return pdfUrl;
   };
 
-  const syncData = useCallback(async (): Promise<void> => {
-    try {
-      await fetch(`${API_URL}/sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clients, invoices, costs })
-      });
-    } catch (e) {
-      console.error('Sync failed', e);
-    }
-  }, [clients, invoices, costs]);
+  const syncData = useCallback(
+    async (
+      c: Client[] = clients,
+      i: Invoice[] = invoices,
+      co: Cost[] = costs
+    ): Promise<void> => {
+      try {
+        await fetch(`${API_URL}/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clients: c, invoices: i, costs: co })
+        });
+        persist(c, i, co, false);
+        setApiAvailable(true);
+      } catch (e) {
+        console.error('Sync failed', e);
+        setApiAvailable(false);
+        persist(c, i, co, true);
+      }
+    },
+    [clients, invoices, costs]
+  );
 
   useEffect(() => {
     const handleOnline = async () => {

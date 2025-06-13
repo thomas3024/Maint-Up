@@ -34,7 +34,9 @@ et coûts. Par mesure de sécurité, seules les requêtes provenant du domaine
 Si le serveur n'est pas disponible, l'application fonctionne quand même grâce
 à un stockage dans le `localStorage` du navigateur. Vos données seront ainsi
 conservées localement et synchronisées automatiquement avec le backend dès que
-la connexion internet est rétablie.
+la connexion internet est rétablie. Les modifications effectuées hors
+connexion persistent même après un rechargement de la page et seront envoyées
+au serveur dès que possible.
 
 ## Utilisation
 
