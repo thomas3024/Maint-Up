@@ -29,8 +29,10 @@ npm run server
 ```
 
 L'application communiquera alors avec ce backend pour sauvegarder clients, factures
-et coûts. Si le serveur n'est pas disponible, l'application fonctionne quand même
-grâce à un stockage dans le `localStorage` du navigateur. Vos données seront ainsi
+et coûts. Par mesure de sécurité, seules les requêtes provenant du domaine
+`https://maint-up.vercel.app` sont acceptées.
+Si le serveur n'est pas disponible, l'application fonctionne quand même grâce
+à un stockage dans le `localStorage` du navigateur. Vos données seront ainsi
 conservées localement et synchronisées avec le backend dès qu'il sera de nouveau
 accessible.
 

@@ -6,7 +6,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = new URL('./data.json', import.meta.url);
 
-app.use(cors());
+const ALLOWED_ORIGIN = 'https://maint-up.vercel.app';
+app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json());
 
 function readData() {
