@@ -33,8 +33,8 @@ et coûts. Par mesure de sécurité, seules les requêtes provenant du domaine
 `https://maint-up.vercel.app` sont acceptées.
 Si le serveur n'est pas disponible, l'application fonctionne quand même grâce
 à un stockage dans le `localStorage` du navigateur. Vos données seront ainsi
-conservées localement et synchronisées avec le backend dès qu'il sera de nouveau
-accessible.
+conservées localement et synchronisées automatiquement avec le backend dès que
+la connexion internet est rétablie.
 
 ## Utilisation
 

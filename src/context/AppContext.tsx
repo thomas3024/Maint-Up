@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback
+} from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import {
@@ -564,7 +571,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return pdfUrl;
   };
 
-  const syncData = async (): Promise<void> => {
+  const syncData = useCallback(async (): Promise<void> => {
     try {
       await fetch(`${API_URL}/sync`, {
         method: 'POST',
@@ -574,7 +581,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (e) {
       console.error('Sync failed', e);
     }
-  };
+  }, [clients, invoices, costs]);
+
+  useEffect(() => {
+    const handleOnline = async () => {
+      try {
+        await syncData();
+        setApiAvailable(true);
+      } catch (e) {
+        setApiAvailable(false);
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    let interval: NodeJS.Timeout | undefined;
+    if (!apiAvailable) {
+      interval = setInterval(handleOnline, 30000);
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      if (interval) clearInterval(interval);
+    };
+  }, [apiAvailable, syncData]);
 
   const value: AppContextType = {
     currentUser,
