@@ -20,6 +20,8 @@ import {
 import { format, subMonths, addMonths, getYear } from 'date-fns';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_TOKEN = import.meta.env.VITE_API_TOKEN;
+const AUTH_HEADER = API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {};
 const LOCAL_STORAGE_KEY = 'maintup-data';
 
 interface AppContextType {
@@ -178,7 +180,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const res = await fetch(`${API_URL}/clients`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: JSON.stringify(clientData)
       });
       if (!res.ok) throw new Error('api');
@@ -210,7 +212,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const res = await fetch(`${API_URL}/clients/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: JSON.stringify(updates)
       });
       if (!res.ok) throw new Error('api');
@@ -234,7 +236,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const deleteClient = async (id: string) => {
     try {
-      await fetch(`${API_URL}/clients/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/clients/${id}`, {
+        method: 'DELETE',
+        headers: AUTH_HEADER
+      });
     } catch (e) {
       // offline, just update local data
       setUnsynced(true);
@@ -261,7 +266,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const res = await fetch(`${API_URL}/invoices`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: JSON.stringify(invoiceData)
       });
       if (!res.ok) throw new Error('api');
@@ -294,7 +299,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const res = await fetch(`${API_URL}/invoices/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: JSON.stringify(updates)
       });
       if (!res.ok) throw new Error('api');
@@ -318,7 +323,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const deleteInvoice = async (id: string) => {
     try {
-      await fetch(`${API_URL}/invoices/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/invoices/${id}`, {
+        method: 'DELETE',
+        headers: AUTH_HEADER
+      });
     } catch (e) {
       // offline
       setUnsynced(true);
@@ -340,7 +348,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const res = await fetch(`${API_URL}/costs`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: JSON.stringify(costData)
       });
       if (!res.ok) throw new Error('api');
@@ -366,7 +374,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const res = await fetch(`${API_URL}/costs/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: JSON.stringify(updates)
       });
       if (!res.ok) throw new Error('api');
@@ -389,7 +397,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const deleteCost = async (id: string) => {
     try {
-      await fetch(`${API_URL}/costs/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/costs/${id}`, {
+        method: 'DELETE',
+        headers: AUTH_HEADER
+      });
     } catch (e) {
       // offline
       setUnsynced(true);
@@ -610,7 +621,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       try {
         await fetch(`${API_URL}/sync`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
           body: JSON.stringify({ clients: c, invoices: i, costs: co })
         });
         persist(c, i, co, false);

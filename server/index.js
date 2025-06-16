@@ -5,10 +5,20 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = new URL('./data.json', import.meta.url);
+const API_TOKEN = process.env.API_TOKEN;
 
 const ALLOWED_ORIGIN = 'https://maint-up.vercel.app';
 app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json());
+
+function requireAuth(req, res, next) {
+  if (!API_TOKEN) return next();
+  const auth = req.get('Authorization');
+  if (auth === `Bearer ${API_TOKEN}`) {
+    return next();
+  }
+  return res.sendStatus(401);
+}
 
 function readData() {
   const raw = fs.readFileSync(DATA_FILE, 'utf-8');
@@ -28,7 +38,7 @@ function createRouter(key) {
     res.json(data[key]);
   });
 
-  router.post('/', (req, res) => {
+  router.post('/', requireAuth, (req, res) => {
     const data = readData();
     let item = { id: Date.now().toString(), ...req.body };
 
@@ -48,7 +58,7 @@ function createRouter(key) {
     res.status(201).json(item);
   });
 
-  router.put('/:id', (req, res) => {
+  router.put('/:id', requireAuth, (req, res) => {
     const data = readData();
     const index = data[key].findIndex(i => i.id === req.params.id);
     if (index === -1) return res.sendStatus(404);
@@ -57,7 +67,7 @@ function createRouter(key) {
     res.json(data[key][index]);
   });
 
-  router.delete('/:id', (req, res) => {
+  router.delete('/:id', requireAuth, (req, res) => {
     const data = readData();
     data[key] = data[key].filter(i => i.id !== req.params.id);
     writeData(data);
@@ -72,7 +82,7 @@ app.use('/invoices', createRouter('invoices'));
 app.use('/costs', createRouter('costs'));
 
 // Endpoint to replace the entire dataset (used for manual sync)
-app.post('/sync', (req, res) => {
+app.post('/sync', requireAuth, (req, res) => {
   const { clients = [], invoices = [], costs = [] } = req.body || {};
   const data = { clients, invoices, costs };
   writeData(data);

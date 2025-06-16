@@ -62,6 +62,17 @@ La barre latérale donne accès aux différentes pages :
 
 Ce projet inclut un fichier `vercel.json` qui associe automatiquement l'application au domaine https://maint-up.vercel.app lors du déploiement.
 
+## Sécurisation de l'API
+
+Le serveur Express peut être protégé par un jeton d'API. Définissez la variable
+d'environnement `API_TOKEN` lors du démarrage du serveur pour activer cette
+protection. Toutes les requêtes d'écriture (POST, PUT, DELETE et `/sync`) doivent
+alors fournir l'en-tête `Authorization: Bearer <token>`.
+
+Pour utiliser cette authentification côté client, créez un fichier `.env` avec
+la variable `VITE_API_TOKEN` contenant le même jeton. Si cette variable n'est
+pas définie, l'application fonctionne en lecture seule.
+
 
 ## Licence
 
