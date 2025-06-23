@@ -6,7 +6,7 @@ import CostForm from './CostForm';
 import { Cost } from '../../types';
 
 const CostsManager: React.FC = () => {
-  const { costs, invoices, currentUser, deleteCost } = useAppContext();
+  const { costs, invoices, clients, currentUser, deleteCost } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
@@ -24,7 +24,7 @@ const CostsManager: React.FC = () => {
     { id: 'other', label: '📋 Autre', icon: FileText, color: 'text-gray-600', bg: 'bg-gray-50' },
   ];
 
-  const uniqueClients = Array.from(new Set(costs.map(cost => cost.clientName)));
+  const uniqueClients = clients.map(client => client.name).sort();
 
   const filteredCosts = costs.filter(cost => {
     const matchesSearch = cost.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
