@@ -54,7 +54,7 @@ const variableCategories = [
   'Autre'
 ];
 
-const payrollCategories = ['Salaire', 'Charges', 'Autre'];
+const payrollCategories = ['Salaire', 'Charges', 'Prime performance', 'Autre'];
 
 const OfficeCosts: React.FC = () => {
   const { costs, addCost, deleteCost } = useAppContext();
