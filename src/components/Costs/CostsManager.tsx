@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3, Home, Building2 } from 'lucide-react';
+import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3, Home, Building2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import CostForm from './CostForm';
 import { Cost } from '../../types';
@@ -12,6 +12,7 @@ const CostsManager: React.FC = () => {
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingCost, setEditingCost] = useState<Cost | null>(null);
+  const [expandedClients, setExpandedClients] = useState<Record<string, boolean>>({});
 
   const categories = [
     { id: 'salaries', label: '👥 Salaires', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -61,13 +62,36 @@ const CostsManager: React.FC = () => {
 
   const totalAmount = filteredCosts.reduce((sum, cost) => sum + cost.amount, 0);
 
-  const costsByClient = filteredCosts.reduce<Record<string, { clientName: string; costs: Cost[] }>>((acc, cost) => {
-    if (!acc[cost.clientId]) {
-      acc[cost.clientId] = { clientName: cost.clientName, costs: [] };
-    }
-    acc[cost.clientId].costs.push(cost);
-    return acc;
-  }, {});
+  const costsByClient = sortedClients
+    .filter(c => clientFilter === 'all' || c.id === clientFilter)
+    .reduce<Record<string, { clientName: string; costs: Cost[] }>>((acc, client) => {
+      const clientCosts = filteredCosts.filter(c => c.clientId === client.id);
+      acc[client.id] = { clientName: client.name, costs: clientCosts };
+      return acc;
+    }, {});
+
+  const toggleClient = (clientId: string) => {
+    setExpandedClients(prev => ({
+      ...prev,
+      [clientId]: !prev[clientId]
+    }));
+  };
+
+  const expandAll = () => {
+    const all: Record<string, boolean> = {};
+    Object.keys(costsByClient).forEach(id => {
+      all[id] = true;
+    });
+    setExpandedClients(all);
+  };
+
+  const collapseAll = () => {
+    const all: Record<string, boolean> = {};
+    Object.keys(costsByClient).forEach(id => {
+      all[id] = false;
+    });
+    setExpandedClients(all);
+  };
 
   const months = Array.from({ length: 12 }, (_, i) =>
     format(new Date(2025, i, 1), 'MMM yyyy')
@@ -167,6 +191,21 @@ const CostsManager: React.FC = () => {
           ))}
         </select>
 
+        <div className="flex items-center gap-2">
+          <button
+            onClick={expandAll}
+            className="px-4 py-3 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+          >
+            Tout ouvrir
+          </button>
+          <button
+            onClick={collapseAll}
+            className="px-4 py-3 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+          >
+            Tout fermer
+          </button>
+        </div>
+
       </div>
 
       {/* Costs List */}
@@ -201,21 +240,42 @@ const CostsManager: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {Object.values(costsByClient).map(group => (
-                <React.Fragment key={group.clientName}>
+              {Object.entries(costsByClient).map(([clientId, group]) => (
+                <React.Fragment key={clientId}>
                   <tr className="bg-gray-100">
                     <td
                       colSpan={currentUser?.role === 'admin' ? 7 : 6}
                       className="px-6 py-3 text-left text-sm font-semibold text-gray-700"
                     >
-                      {group.clientName}
+                      <button
+                        onClick={() => toggleClient(clientId)}
+                        className="flex items-center space-x-2"
+                      >
+                        {expandedClients[clientId] ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                        <span>{group.clientName}</span>
+                      </button>
                     </td>
                   </tr>
-                  {group.costs.map(cost => {
-                    const categoryInfo = getCategoryInfo(cost.category);
-                    const Icon = categoryInfo.icon;
-                    const invoiceInfo = getInvoiceInfo(cost.invoiceId);
-                    return (
+                  {expandedClients[clientId] &&
+                    (group.costs.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={currentUser?.role === 'admin' ? 7 : 6}
+                          className="px-6 py-4 text-sm text-gray-500 italic"
+                        >
+                          Aucun coût
+                        </td>
+                      </tr>
+                    ) : (
+                      group.costs.map(cost => {
+                      const categoryInfo = getCategoryInfo(cost.category);
+                      const Icon = categoryInfo.icon;
+                      const invoiceInfo = getInvoiceInfo(cost.invoiceId);
+                      return (
                       <tr key={cost.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">{cost.description}</div>
@@ -266,8 +326,7 @@ const CostsManager: React.FC = () => {
                           </td>
                         )}
                       </tr>
-                    );
-                  })}
+                    )))}
                 </React.Fragment>
               ))}
             </tbody>
