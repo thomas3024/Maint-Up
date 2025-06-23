@@ -4,16 +4,25 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  LineElement,
+  PointElement,
   ArcElement,
   Tooltip,
   Legend
 } from 'chart.js';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Line, Doughnut } from 'react-chartjs-2';
 import { format } from 'date-fns';
 import { useAppContext } from '../../context/AppContext';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Tooltip,
+  Legend
+);
 
 const OFFICE_CLIENT_ID = 'office';
 const OFFICE_CLIENT_NAME = 'Charges Bureau';
@@ -110,12 +119,36 @@ const OfficeCosts: React.FC = () => {
   const variableTotals = computeTotals(variableCosts);
   const payrollTotals = computeTotals(payrollCosts);
 
-  const barData = {
+  const monthlyChartData = {
     labels: months,
     datasets: [
-      { label: 'Frais fixes', data: fixedTotals, backgroundColor: '#6366F1' },
-      { label: 'Frais variables', data: variableTotals, backgroundColor: '#F59E0B' },
-      { label: 'Salaires & Charges', data: payrollTotals, backgroundColor: '#10B981' }
+      {
+        label: 'Frais fixes',
+        data: fixedTotals,
+        borderColor: '#6366F1',
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4
+      },
+      {
+        label: 'Frais variables',
+        data: variableTotals,
+        borderColor: '#F59E0B',
+        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4
+      },
+      {
+        label: 'Salaires & Charges',
+        data: payrollTotals,
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4
+      }
     ]
   };
 
@@ -123,7 +156,7 @@ const OfficeCosts: React.FC = () => {
     variableCosts.reduce((s, c) => s + c.amount, 0) +
     payrollCosts.reduce((s, c) => s + c.amount, 0);
 
-  const pieData = {
+  const distributionData = {
     labels: ['Frais fixes', 'Frais variables', 'Salaires & Charges'],
     datasets: [
       {
@@ -132,9 +165,57 @@ const OfficeCosts: React.FC = () => {
           variableCosts.reduce((s, c) => s + c.amount, 0),
           payrollCosts.reduce((s, c) => s + c.amount, 0)
         ],
-        backgroundColor: ['#6366F1', '#F59E0B', '#10B981']
+        backgroundColor: ['rgba(99, 102, 241, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(16, 185, 129, 0.8)'],
+        borderColor: ['#6366F1', '#F59E0B', '#10B981'],
+        borderWidth: 2
       }
     ]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: {
+            size: 12,
+            weight: '500'
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: '#6B7280',
+          font: { size: 11 }
+        }
+      },
+      y: {
+        grid: { color: 'rgba(107, 114, 128, 0.1)' },
+        ticks: {
+          color: '#6B7280',
+          font: { size: 11 },
+          callback: function(value: any) {
+            return value.toLocaleString('fr-FR') + ' €';
+          }
+        }
+      }
+    }
   };
 
   return (
@@ -379,13 +460,26 @@ const OfficeCosts: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Évolution mensuelle 2025</h2>
             <div className="h-80">
-              <Bar data={barData} options={{ responsive: true, maintainAspectRatio: false }} />
+              <Line data={monthlyChartData} options={chartOptions} />
             </div>
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Répartition</h2>
             <div className="h-80">
-              <Pie data={pieData} options={{ responsive: true, maintainAspectRatio: false }} />
+              <Doughnut
+                data={distributionData}
+                options={{
+                  ...chartOptions,
+                  scales: undefined,
+                  plugins: {
+                    ...chartOptions.plugins,
+                    legend: {
+                      ...(chartOptions.plugins as any).legend,
+                      position: 'bottom' as const
+                    }
+                  }
+                }}
+              />
             </div>
           </div>
         </div>
