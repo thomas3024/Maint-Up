@@ -18,15 +18,17 @@ const CostsManager: React.FC = () => {
     { id: 'charges', label: '📊 Charges sociales', icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-50' },
     { id: 'subcontracting', label: '🤝 Sous-traitance', icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
     { id: 'materials', label: '🔧 Matériaux', icon: Wrench, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { id: 'office', label: '🏢 Bureau', icon: Building2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { id: 'transport', label: '🚛 Transport', icon: Truck, color: 'text-yellow-600', bg: 'bg-yellow-50' },
     { id: 'housing', label: '🏠 Logements', icon: Home, color: 'text-teal-600', bg: 'bg-teal-50' },
     { id: 'other', label: '📋 Autre', icon: FileText, color: 'text-gray-600', bg: 'bg-gray-50' },
   ];
 
-  const uniqueClients = Array.from(new Set(costs.map(cost => cost.clientName)));
+  // Exclude office costs which are managed in a dedicated view
+  const nonOfficeCosts = costs.filter(cost => cost.category !== 'office');
 
-  const filteredCosts = costs.filter(cost => {
+  const uniqueClients = Array.from(new Set(nonOfficeCosts.map(cost => cost.clientName)));
+
+  const filteredCosts = nonOfficeCosts.filter(cost => {
     const matchesSearch = cost.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          cost.clientName.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -36,7 +38,7 @@ const CostsManager: React.FC = () => {
     return matchesSearch && matchesCategory && matchesClient;
   });
 
-  const fixedCategories = ['salaries', 'charges', 'housing', 'office'];
+  const fixedCategories = ['salaries', 'charges', 'housing'];
   const fixedCosts = filteredCosts.filter(cost => fixedCategories.includes(cost.category));
   const variableCosts = filteredCosts.filter(cost => !fixedCategories.includes(cost.category));
 
