@@ -33,6 +33,10 @@ export interface Cost {
   description: string;
   amount: number;
   category: 'office' | 'salaries' | 'charges' | 'subcontracting' | 'materials' | 'transport' | 'housing' | 'other';
+  /** Additional office-specific type (frais fixes, variables, salaires) */
+  officeType?: 'fixed' | 'variable' | 'payroll';
+  /** Detailed sub category label (e.g. Google, Essence...) */
+  officeCategory?: string;
   date: Date;
 }
 
