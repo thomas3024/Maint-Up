@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3, Home, Building2 } from 'lucide-react';
+import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3, Home, Building2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import CostForm from './CostForm';
 import { Cost } from '../../types';
@@ -12,6 +12,7 @@ const CostsManager: React.FC = () => {
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingCost, setEditingCost] = useState<Cost | null>(null);
+  const [openClients, setOpenClients] = useState<Record<string, boolean>>({});
 
   const categories = [
     { id: 'salaries', label: '👥 Salaires', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -50,6 +51,10 @@ const CostsManager: React.FC = () => {
     }
   };
 
+  const toggleClient = (clientId: string) => {
+    setOpenClients(prev => ({ ...prev, [clientId]: !prev[clientId] }));
+  };
+
   const getCategoryInfo = (categoryId: string) => {
     return categories.find(cat => cat.id === categoryId) || categories[categories.length - 1];
   };
@@ -61,9 +66,9 @@ const CostsManager: React.FC = () => {
 
   const totalAmount = filteredCosts.reduce((sum, cost) => sum + cost.amount, 0);
 
-  const costsByClient = filteredCosts.reduce<Record<string, { clientName: string; costs: Cost[] }>>((acc, cost) => {
+  const costsByClient = filteredCosts.reduce<Record<string, { clientId: string; clientName: string; costs: Cost[] }>>((acc, cost) => {
     if (!acc[cost.clientId]) {
-      acc[cost.clientId] = { clientName: cost.clientName, costs: [] };
+      acc[cost.clientId] = { clientId: cost.clientId, clientName: cost.clientName, costs: [] };
     }
     acc[cost.clientId].costs.push(cost);
     return acc;
@@ -202,16 +207,25 @@ const CostsManager: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {Object.values(costsByClient).map(group => (
-                <React.Fragment key={group.clientName}>
-                  <tr className="bg-gray-100">
+                <React.Fragment key={group.clientId}>
+                  <tr
+                    className="bg-gray-100 cursor-pointer"
+                    onClick={() => toggleClient(group.clientId)}
+                  >
                     <td
                       colSpan={currentUser?.role === 'admin' ? 7 : 6}
-                      className="px-6 py-3 text-left text-sm font-semibold text-gray-700"
+                      className="px-6 py-3 text-left text-sm font-semibold text-gray-700 flex items-center gap-2"
                     >
-                      {group.clientName}
+                      {openClients[group.clientId] ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                      <span>{group.clientName}</span>
                     </td>
                   </tr>
-                  {group.costs.map(cost => {
+                  {openClients[group.clientId] &&
+                    group.costs.map(cost => {
                     const categoryInfo = getCategoryInfo(cost.category);
                     const Icon = categoryInfo.icon;
                     const invoiceInfo = getInvoiceInfo(cost.invoiceId);
