@@ -2,6 +2,29 @@ import React, { useState } from 'react';
 import { Plus, Trash } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAppContext } from '../../context/AppContext';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import { Bar, Line, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Tooltip,
+  Legend
+);
 
 const fixedCategories = [
   'Google',
@@ -158,6 +181,85 @@ const MonthlyOfficeCosts: React.FC = () => {
   const months = Array.from({ length: 12 }, (_, i) => new Date(2025, i, 1));
   const [open, setOpen] = useState<number | null>(0);
 
+  const monthLabels = months.map(m => format(m, 'MMM yyyy'));
+  const fixedTotals = months.map(m =>
+    officeCosts
+      .filter(
+        c =>
+          c.officeType === 'fixed' && format(c.date, 'yyyy-MM') === format(m, 'yyyy-MM')
+      )
+      .reduce((s, c) => s + c.amount, 0)
+  );
+  const variableTotals = months.map(m =>
+    officeCosts
+      .filter(
+        c =>
+          c.officeType === 'variable' && format(c.date, 'yyyy-MM') === format(m, 'yyyy-MM')
+      )
+      .reduce((s, c) => s + c.amount, 0)
+  );
+  const payrollTotals = months.map(m =>
+    officeCosts
+      .filter(
+        c =>
+          c.officeType === 'payroll' && format(c.date, 'yyyy-MM') === format(m, 'yyyy-MM')
+      )
+      .reduce((s, c) => s + c.amount, 0)
+  );
+
+  const yearlyChartData = {
+    labels: monthLabels,
+    datasets: [
+      {
+        label: 'Frais fixes',
+        data: fixedTotals,
+        borderColor: '#6366F1',
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4
+      },
+      {
+        label: 'Frais variables',
+        data: variableTotals,
+        borderColor: '#F59E0B',
+        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4
+      },
+      {
+        label: 'Salaires & Charges',
+        data: payrollTotals,
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4
+      }
+    ]
+  };
+
+  const distributionData = {
+    labels: ['Frais fixes', 'Frais variables', 'Salaires & Charges'],
+    datasets: [
+      {
+        data: [
+          fixedTotals.reduce((s, v) => s + v, 0),
+          variableTotals.reduce((s, v) => s + v, 0),
+          payrollTotals.reduce((s, v) => s + v, 0)
+        ],
+        backgroundColor: [
+          'rgba(99, 102, 241, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(16, 185, 129, 0.8)'
+        ],
+        borderColor: ['#6366F1', '#F59E0B', '#10B981'],
+        borderWidth: 2
+      }
+    ]
+  };
+
   return (
     <div className="space-y-4">
       {months.map((m, idx) => {
@@ -180,11 +282,151 @@ const MonthlyOfficeCosts: React.FC = () => {
                 <Section title="Frais fixes" type="fixed" costs={fixed} monthDate={m} />
                 <Section title="Frais variables" type="variable" costs={variable} monthDate={m} />
                 <Section title="Salaires & Charges" type="payroll" costs={payroll} monthDate={m} />
+                {(fixed.length > 0 || variable.length > 0 || payroll.length > 0) && (
+                  <div className="h-72">
+                    <Bar
+                      data={{
+                        labels: ['Frais fixes', 'Frais variables', 'Salaires & Charges'],
+                        datasets: [
+                          {
+                            label: 'Montant',
+                            data: [
+                              fixed.reduce((s, c) => s + c.amount, 0),
+                              variable.reduce((s, c) => s + c.amount, 0),
+                              payroll.reduce((s, c) => s + c.amount, 0)
+                            ],
+                            backgroundColor: [
+                              'rgba(99, 102, 241, 0.8)',
+                              'rgba(245, 158, 11, 0.8)',
+                              'rgba(16, 185, 129, 0.8)'
+                            ],
+                            borderColor: ['#6366F1', '#F59E0B', '#10B981'],
+                            borderWidth: 2
+                          }
+                        ]
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            position: 'top' as const,
+                            labels: {
+                              usePointStyle: true,
+                              padding: 20,
+                              font: { size: 12, weight: '500' }
+                            }
+                          },
+                          tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#e5e7eb',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            callbacks: {
+                              label: function (context: any) {
+                                const value = context.parsed.y;
+                                return `${value.toLocaleString('fr-FR')} €`;
+                              }
+                            }
+                          }
+                        },
+                        scales: {
+                          x: {
+                            grid: { display: false },
+                            ticks: { color: '#6B7280', font: { size: 11 } }
+                          },
+                          y: {
+                            grid: { color: 'rgba(107, 114, 128, 0.1)' },
+                            ticks: {
+                              color: '#6B7280',
+                              font: { size: 11 },
+                              callback: function (value: any) {
+                                return value.toLocaleString('fr-FR') + ' €';
+                              }
+                            }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
         );
       })}
+      {(fixedTotals.some(t => t > 0) || variableTotals.some(t => t > 0) || payrollTotals.some(t => t > 0)) && (
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Évolution mensuelle 2025</h2>
+            <div className="h-80">
+              <Line data={yearlyChartData} options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'top' as const,
+                    labels: { usePointStyle: true, padding: 20, font: { size: 12, weight: '500' } }
+                  },
+                  tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#e5e7eb',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    callbacks: {
+                      label: function(context: any) {
+                        const value = context.parsed.y;
+                        return `${value.toLocaleString('fr-FR')} €`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  x: { grid: { display: false }, ticks: { color: '#6B7280', font: { size: 11 } } },
+                  y: {
+                    grid: { color: 'rgba(107, 114, 128, 0.1)' },
+                    ticks: {
+                      color: '#6B7280',
+                      font: { size: 11 },
+                      callback: function(value: any) { return value.toLocaleString('fr-FR') + ' €'; }
+                    }
+                  }
+                }
+              }} />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Répartition annuelle</h2>
+            <div className="h-80">
+              <Doughnut data={distributionData} options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom' as const,
+                    labels: { usePointStyle: true, padding: 20, font: { size: 12, weight: '500' } }
+                  },
+                  tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#e5e7eb',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true
+                  }
+                }
+              }} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
