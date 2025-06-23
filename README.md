@@ -45,7 +45,7 @@ La barre latérale donne accès aux différentes pages :
 - **Dashboard** : synthèse des revenus, coûts et bénéfices.
 - **Clients** : gestion des clients (ajout, modification, suppression) et suivi du chiffre d'affaires par client.
 - **Factures** : création de factures et suivi de leur statut (payée, en attente ou en retard). Il est possible de lier un fichier PDF.
-- **Coûts** : enregistrement des dépenses par client ou générales.
+- **Coûts** : enregistrement des dépenses par client ou générales. Un menu déroulant en haut de la page permet désormais de sélectionner rapidement un client et d'afficher automatiquement ses coûts.
 - **Analytics** : graphiques et indicateurs pour visualiser la rentabilité.
 - **Reports** : génération d'un rapport annuel exportable au format PDF.
 

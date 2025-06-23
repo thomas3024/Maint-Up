@@ -6,12 +6,13 @@ import { Cost } from '../../types';
 interface CostFormProps {
   cost?: Cost | null;
   onClose: () => void;
+  defaultClientId?: string;
 }
 
-const CostForm: React.FC<CostFormProps> = ({ cost, onClose }) => {
+const CostForm: React.FC<CostFormProps> = ({ cost, onClose, defaultClientId }) => {
   const { clients, invoices, addCost, updateCost } = useAppContext();
   const [formData, setFormData] = useState({
-    clientId: cost?.clientId || '',
+    clientId: cost?.clientId || defaultClientId || '',
     invoiceId: cost?.invoiceId || '',
     description: cost?.description || '',
     amount: cost?.amount || 0,

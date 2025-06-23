@@ -24,14 +24,14 @@ const CostsManager: React.FC = () => {
     { id: 'other', label: '📋 Autre', icon: FileText, color: 'text-gray-600', bg: 'bg-gray-50' },
   ];
 
-  const uniqueClients = clients.map(client => client.name).sort();
+  const sortedClients = [...clients].sort((a, b) => a.name.localeCompare(b.name));
 
   const filteredCosts = costs.filter(cost => {
     const matchesSearch = cost.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          cost.clientName.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = categoryFilter === 'all' || cost.category === categoryFilter;
-    const matchesClient = clientFilter === 'all' || cost.clientName === clientFilter;
+    const matchesClient = clientFilter === 'all' || cost.clientId === clientFilter;
     
     return matchesSearch && matchesCategory && matchesClient;
   });
@@ -73,8 +73,8 @@ const CostsManager: React.FC = () => {
     format(new Date(2025, i, 1), 'MMM yyyy')
   );
 
-  const monthlyCosts = uniqueClients.map(client => {
-    const clientCosts = filteredCosts.filter(c => c.clientName === client);
+  const monthlyCosts = sortedClients.map(client => {
+    const clientCosts = filteredCosts.filter(c => c.clientId === client.id);
     const totals = months.map(month =>
       clientCosts
         .filter(c => format(c.date, 'MMM yyyy') === month)
@@ -85,23 +85,36 @@ const CostsManager: React.FC = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">🟦 Gestion des Coûts</h1>
           <p className="text-gray-600">
             {filteredCosts.length} coût(s) • {totalAmount.toLocaleString('fr-FR')} € total
           </p>
         </div>
-        
-        {currentUser?.role === 'admin' && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+
+        <div className="flex items-center gap-4">
+          <select
+            value={clientFilter}
+            onChange={(e) => setClientFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
-            <Plus className="h-4 w-4" />
-            <span>Nouveau Coût</span>
-          </button>
-        )}
+            <option value="all">Tous les clients</option>
+            {sortedClients.map(client => (
+              <option key={client.id} value={client.id}>{client.name}</option>
+            ))}
+          </select>
+
+          {currentUser?.role === 'admin' && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Nouveau Coût</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Category Stats */}
@@ -154,16 +167,6 @@ const CostsManager: React.FC = () => {
           ))}
         </select>
 
-        <select
-          value={clientFilter}
-          onChange={(e) => setClientFilter(e.target.value)}
-          className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        >
-          <option value="all">Tous les clients</option>
-          {uniqueClients.map(client => (
-            <option key={client} value={client}>{client}</option>
-          ))}
-        </select>
       </div>
 
       {/* Costs List */}
@@ -292,9 +295,9 @@ const CostsManager: React.FC = () => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {monthlyCosts.map(row => (
-              <tr key={row.client} className="hover:bg-gray-50">
+              <tr key={row.client.id} className="hover:bg-gray-50">
                 <td className="px-4 py-2 font-medium text-gray-900">
-                  {row.client}
+                  {row.client.name}
                 </td>
                 {row.totals.map((total, idx) => (
                   <td key={idx} className="px-4 py-2 text-sm text-blue-600 font-semibold">
@@ -322,6 +325,7 @@ const CostsManager: React.FC = () => {
       {showForm && (
         <CostForm
           cost={editingCost}
+          defaultClientId={clientFilter !== 'all' ? clientFilter : undefined}
           onClose={() => {
             setShowForm(false);
             setEditingCost(null);
