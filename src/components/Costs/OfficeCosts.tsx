@@ -50,6 +50,7 @@ const variableCategories = [
   'Outils',
   'Hôtel',
   'Vêtements',
+  'TVA',
   'Autre'
 ];
 
