@@ -18,7 +18,7 @@ export interface Invoice {
   amountHT: number;
   tva: number;
   amountTTC: number;
-  status: 'pending' | 'paid' | 'overdue';
+  status: "pending" | "paid" | "overdue";
   issueDate: Date;
   dueDate: Date;
   description: string;
@@ -32,9 +32,17 @@ export interface Cost {
   invoiceId?: string;
   description: string;
   amount: number;
-  category: 'office' | 'salaries' | 'charges' | 'subcontracting' | 'materials' | 'transport' | 'housing' | 'other';
+  category:
+    | "office"
+    | "salaries"
+    | "charges"
+    | "subcontracting"
+    | "materials"
+    | "transport"
+    | "housing"
+    | "other";
   /** Additional office-specific type (frais fixes, variables, salaires) */
-  officeType?: 'fixed' | 'variable' | 'payroll';
+  officeType?: "fixed" | "variable" | "payroll";
   /** Detailed sub category label (e.g. Google, Essence...) */
   officeCategory?: string;
   date: Date;
@@ -44,7 +52,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'viewer';
+  role: "admin" | "viewer";
 }
 
 export interface MonthlyData {
@@ -63,6 +71,16 @@ export interface MonthlyClientData {
   profit: number;
   margin: number;
   invoicesCount: number;
+}
+
+export interface MonthlyReport {
+  month: string;
+  revenue: number;
+  costs: number;
+  profit: number;
+  margin: number;
+  invoices: Invoice[];
+  costsList: Cost[];
 }
 
 export interface AnnualReport {
