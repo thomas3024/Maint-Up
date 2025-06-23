@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3, Home } from 'lucide-react';
+import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3, Home, Building2 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import CostForm from './CostForm';
 import { Cost } from '../../types';
@@ -18,6 +18,7 @@ const CostsManager: React.FC = () => {
     { id: 'charges', label: '📊 Charges sociales', icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-50' },
     { id: 'subcontracting', label: '🤝 Sous-traitance', icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
     { id: 'materials', label: '🔧 Matériaux', icon: Wrench, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { id: 'office', label: '🏢 Bureau', icon: Building2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { id: 'transport', label: '🚛 Transport', icon: Truck, color: 'text-yellow-600', bg: 'bg-yellow-50' },
     { id: 'housing', label: '🏠 Logements', icon: Home, color: 'text-teal-600', bg: 'bg-teal-50' },
     { id: 'other', label: '📋 Autre', icon: FileText, color: 'text-gray-600', bg: 'bg-gray-50' },
@@ -35,7 +36,7 @@ const CostsManager: React.FC = () => {
     return matchesSearch && matchesCategory && matchesClient;
   });
 
-  const fixedCategories = ['salaries', 'charges', 'housing'];
+  const fixedCategories = ['salaries', 'charges', 'housing', 'office'];
   const fixedCosts = filteredCosts.filter(cost => fixedCategories.includes(cost.category));
   const variableCosts = filteredCosts.filter(cost => !fixedCategories.includes(cost.category));
 
@@ -53,7 +54,7 @@ const CostsManager: React.FC = () => {
   };
 
   const getCategoryInfo = (categoryId: string) => {
-    return categories.find(cat => cat.id === categoryId) || categories[5];
+    return categories.find(cat => cat.id === categoryId) || categories[categories.length - 1];
   };
 
   const getInvoiceInfo = (invoiceId?: string) => {

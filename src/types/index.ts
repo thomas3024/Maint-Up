@@ -32,7 +32,7 @@ export interface Cost {
   invoiceId?: string;
   description: string;
   amount: number;
-  category: 'salaries' | 'charges' | 'subcontracting' | 'materials' | 'transport' | 'housing' | 'other';
+  category: 'office' | 'salaries' | 'charges' | 'subcontracting' | 'materials' | 'transport' | 'housing' | 'other';
   date: Date;
 }
 
