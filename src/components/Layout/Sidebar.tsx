@@ -1,11 +1,12 @@
 import React from 'react';
 import { 
-  BarChart3, 
-  Users, 
-  Receipt, 
-  DollarSign, 
+  BarChart3,
+  Users,
+  Receipt,
+  DollarSign,
   TrendingUp,
   FileText,
+  Home,
   X
 } from 'lucide-react';
 
@@ -22,6 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeView, onViewCh
     { id: 'clients', label: 'Clients', icon: Users, color: 'text-green-600' },
     { id: 'invoices', label: 'Factures', icon: Receipt, color: 'text-red-600' },
     { id: 'costs', label: 'Coûts', icon: DollarSign, color: 'text-blue-600' },
+    { id: 'office-costs', label: 'Charges bureau', icon: Home, color: 'text-indigo-600' },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp, color: 'text-purple-600' },
     { id: 'reports', label: 'Rapports', icon: FileText, color: 'text-gray-600' },
   ];
