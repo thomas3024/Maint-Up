@@ -15,7 +15,7 @@ const CostForm: React.FC<CostFormProps> = ({ cost, onClose }) => {
     invoiceId: cost?.invoiceId || '',
     description: cost?.description || '',
     amount: cost?.amount || 0,
-    category: cost?.category || 'materials' as 'salaries' | 'charges' | 'subcontracting' | 'materials' | 'transport' | 'housing' | 'other',
+    category: cost?.category || 'materials' as 'office' | 'salaries' | 'charges' | 'subcontracting' | 'materials' | 'transport' | 'housing' | 'other',
     date: cost?.date ? cost.date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
   });
 
@@ -47,6 +47,7 @@ const CostForm: React.FC<CostFormProps> = ({ cost, onClose }) => {
     { id: 'charges', label: '📊 Charges sociales', color: 'text-purple-600' },
     { id: 'subcontracting', label: '🤝 Sous-traitance', color: 'text-green-600' },
     { id: 'materials', label: '🔧 Matériaux', color: 'text-orange-600' },
+    { id: 'office', label: '🏢 Bureau', color: 'text-indigo-600' },
     { id: 'transport', label: '🚛 Transport', color: 'text-yellow-600' },
     { id: 'housing', label: '🏠 Logements', color: 'text-teal-600' },
     { id: 'other', label: '📋 Autre', color: 'text-gray-600' },

@@ -560,6 +560,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
     });
 
+    // Add office costs as a separate entry if any
+    const officeCosts = yearCosts.filter(cost => cost.category === 'office');
+    if (officeCosts.length > 0) {
+      const officeTotal = officeCosts.reduce((sum, c) => sum + c.amount, 0);
+      clientsData.push({
+        clientId: 'office',
+        clientName: 'Charges Bureau',
+        revenue: 0,
+        costs: officeTotal,
+        profit: -officeTotal,
+        margin: 0,
+        revenueShare: 0,
+        invoicesCount: 0
+      });
+    }
+
     const monthlyBreakdown = Array.from({ length: 12 }, (_, i) => {
       const month = format(new Date(year, i, 1), 'MMM yyyy');
       
