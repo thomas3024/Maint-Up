@@ -62,13 +62,13 @@ const CostsManager: React.FC = () => {
 
   const totalAmount = filteredCosts.reduce((sum, cost) => sum + cost.amount, 0);
 
-  const costsByClient = filteredCosts.reduce<Record<string, { clientName: string; costs: Cost[] }>>((acc, cost) => {
-    if (!acc[cost.clientId]) {
-      acc[cost.clientId] = { clientName: cost.clientName, costs: [] };
-    }
-    acc[cost.clientId].costs.push(cost);
-    return acc;
-  }, {});
+  const costsByClient = sortedClients
+    .filter(c => clientFilter === 'all' || c.id === clientFilter)
+    .reduce<Record<string, { clientName: string; costs: Cost[] }>>((acc, client) => {
+      const clientCosts = filteredCosts.filter(c => c.clientId === client.id);
+      acc[client.id] = { clientName: client.name, costs: clientCosts };
+      return acc;
+    }, {});
 
   const toggleClient = (clientId: string) => {
     setExpandedClients(prev => ({
@@ -261,11 +261,21 @@ const CostsManager: React.FC = () => {
                     </td>
                   </tr>
                   {expandedClients[clientId] &&
-                    group.costs.map(cost => {
-                    const categoryInfo = getCategoryInfo(cost.category);
-                    const Icon = categoryInfo.icon;
-                    const invoiceInfo = getInvoiceInfo(cost.invoiceId);
-                    return (
+                    (group.costs.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={currentUser?.role === 'admin' ? 7 : 6}
+                          className="px-6 py-4 text-sm text-gray-500 italic"
+                        >
+                          Aucun coût
+                        </td>
+                      </tr>
+                    ) : (
+                      group.costs.map(cost => {
+                      const categoryInfo = getCategoryInfo(cost.category);
+                      const Icon = categoryInfo.icon;
+                      const invoiceInfo = getInvoiceInfo(cost.invoiceId);
+                      return (
                       <tr key={cost.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">{cost.description}</div>
@@ -316,8 +326,7 @@ const CostsManager: React.FC = () => {
                           </td>
                         )}
                       </tr>
-                    );
-                  })}
+                    )))}
                 </React.Fragment>
               ))}
             </tbody>
