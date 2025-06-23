@@ -6,7 +6,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import ClientsManager from './components/Clients/ClientsManager';
 import InvoicesManager from './components/Invoices/InvoicesManager';
 import CostsManager from './components/Costs/CostsManager';
-import OfficeCosts from './components/Costs/OfficeCosts';
+import MonthlyOfficeCosts from './components/Costs/MonthlyOfficeCosts';
 import ClientAnalytics from './components/Analytics/ClientAnalytics';
 import AnnualReport from './components/Reports/AnnualReport';
 import SettingsModal from './components/Settings/SettingsModal';
@@ -40,7 +40,7 @@ function App() {
       case 'costs':
         return <CostsManager />;
       case 'office-costs':
-        return <OfficeCosts />;
+        return <MonthlyOfficeCosts />;
       case 'analytics':
         return <ClientAnalytics />;
       case 'reports':
