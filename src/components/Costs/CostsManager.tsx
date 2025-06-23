@@ -36,9 +36,6 @@ const CostsManager: React.FC = () => {
     return matchesSearch && matchesCategory && matchesClient;
   });
 
-  const fixedCategories = ['salaries', 'charges', 'housing', 'office'];
-  const fixedCosts = filteredCosts.filter(cost => fixedCategories.includes(cost.category));
-  const variableCosts = filteredCosts.filter(cost => !fixedCategories.includes(cost.category));
 
   const handleEdit = (cost: Cost) => {
     if (currentUser?.role === 'admin') {
@@ -310,63 +307,6 @@ const CostsManager: React.FC = () => {
         </table>
       </div>
 
-      {/* Fixed Costs Table */}
-      {fixedCosts.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden mt-8">
-          <h2 className="px-6 py-4 text-lg font-semibold text-gray-900">Frais fixes</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {fixedCosts.map(cost => (
-                  <tr key={cost.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">{cost.description}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{cost.clientName}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-red-600">{cost.amount.toLocaleString('fr-FR')} €</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{cost.date.toLocaleDateString('fr-FR')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Variable Costs Table */}
-      {variableCosts.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden mt-8">
-          <h2 className="px-6 py-4 text-lg font-semibold text-gray-900">Frais variables</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {variableCosts.map(cost => (
-                  <tr key={cost.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">{cost.description}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{cost.clientName}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-red-600">{cost.amount.toLocaleString('fr-FR')} €</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{cost.date.toLocaleDateString('fr-FR')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
       {filteredCosts.length === 0 && (
         <div className="text-center py-12">
