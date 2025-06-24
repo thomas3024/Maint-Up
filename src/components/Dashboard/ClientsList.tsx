@@ -22,28 +22,28 @@ const ClientsList: React.FC = () => {
       {clientsWithProfit.map((client) => (
         <div
           key={client.id}
-          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           <div className="flex items-center space-x-4">
-            <div className="p-2 bg-white rounded-lg">
-              <Building2 className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-white dark:bg-gray-700 rounded-lg">
+              <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{client.name}</h3>
-              <p className="text-sm text-gray-600">{client.email}</p>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{client.name}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{client.email}</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-6">
             <div className="text-right">
-              <p className="text-sm text-gray-600">CA Total</p>
-              <p className="font-semibold text-gray-900">
+              <p className="text-sm text-gray-600 dark:text-gray-400">CA Total</p>
+              <p className="font-semibold text-gray-900 dark:text-gray-100">
                 {client.revenue.toLocaleString('fr-FR')} €
               </p>
             </div>
             
             <div className="text-right">
-              <p className="text-sm text-gray-600">Bénéfice</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Bénéfice</p>
               <div className="flex items-center space-x-1">
                 {client.profit >= 0 ? (
                   <TrendingUp className="h-4 w-4 text-green-600" />
@@ -59,7 +59,7 @@ const ClientsList: React.FC = () => {
             </div>
             
             <div className="text-right">
-              <p className="text-sm text-gray-600">Marge</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Marge</p>
               <p className={`font-semibold ${
                 client.profitMargin >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>

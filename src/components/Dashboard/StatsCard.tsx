@@ -48,22 +48,22 @@ const StatsCard: React.FC<StatsCardProps> = ({
   };
 
   return (
-    <div className={`${colorClasses[color].bg} rounded-xl p-6 transition-all duration-200 hover:shadow-lg`}>
+    <div className={`${colorClasses[color].bg} dark:bg-gray-800 rounded-xl p-6 transition-all duration-200 hover:shadow-lg`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className={`text-sm font-medium ${colorClasses[color].text} opacity-70`}>
+          <p className={`text-sm font-medium ${colorClasses[color].text} dark:text-gray-100 opacity-70`}>
             {title}
           </p>
-          <p className={`text-2xl font-bold ${colorClasses[color].text} mt-2`}>
+          <p className={`text-2xl font-bold ${colorClasses[color].text} dark:text-gray-100 mt-2`}>
             {typeof value === 'number' ? value.toLocaleString('fr-FR') : value}
           </p>
           {change && (
-            <p className={`text-sm mt-2 ${changeColors[changeType || 'neutral']}`}>
+            <p className={`text-sm mt-2 ${changeColors[changeType || 'neutral']} dark:text-gray-100`}>
               {change}
             </p>
           )}
         </div>
-        <div className={`p-3 rounded-lg bg-white bg-opacity-50`}>
+        <div className={`p-3 rounded-lg bg-white dark:bg-gray-700 bg-opacity-50`}>
           <Icon className={`h-6 w-6 ${colorClasses[color].icon}`} />
         </div>
       </div>
