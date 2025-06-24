@@ -82,7 +82,7 @@ Une fois le projet lié, vous pouvez extraire les variables définies dans Verce
 ```bash
 vercel env pull .env
 ```
-
+vercel --prod
 Cette commande recréera un fichier `.env` local et permettra à nouveau de faire
 des demandes d'extraction ou des déploiements comme auparavant.
 
