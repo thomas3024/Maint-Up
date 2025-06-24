@@ -104,3 +104,17 @@ export interface ClientAnnualData {
   revenueShare: number;
   invoicesCount: number;
 }
+
+export interface CostGridClient {
+  clientId: string;
+  clientName: string;
+  rate: number;
+  notes?: string;
+}
+
+export interface CostGrid {
+  id: string;
+  name: string;
+  category?: string;
+  clients: CostGridClient[];
+}
