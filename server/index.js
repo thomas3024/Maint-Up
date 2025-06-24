@@ -80,11 +80,12 @@ function createRouter(key) {
 app.use('/clients', createRouter('clients'));
 app.use('/invoices', createRouter('invoices'));
 app.use('/costs', createRouter('costs'));
+app.use('/costGrids', createRouter('costGrids'));
 
 // Endpoint to replace the entire dataset (used for manual sync)
 app.post('/sync', requireAuth, (req, res) => {
-  const { clients = [], invoices = [], costs = [] } = req.body || {};
-  const data = { clients, invoices, costs };
+  const { clients = [], invoices = [], costs = [], costGrids = [] } = req.body || {};
+  const data = { clients, invoices, costs, costGrids };
   writeData(data);
   res.sendStatus(204);
 });

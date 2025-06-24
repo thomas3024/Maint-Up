@@ -1,5 +1,6 @@
 {
   "clients": [],
   "invoices": [],
-  "costs": []
+  "costs": [],
+  "costGrids": []
 }

@@ -17,6 +17,7 @@ import {
   AnnualReport,
   MonthlyClientData,
   MonthlyReport,
+  CostGrid,
 } from "../types";
 import { format, subMonths, addMonths, getYear } from "date-fns";
 
@@ -34,6 +35,7 @@ interface AppContextType {
   clients: Client[];
   invoices: Invoice[];
   costs: Cost[];
+  costGrids: CostGrid[];
 
   // CRUD operations
   addClient: (
@@ -48,6 +50,10 @@ interface AppContextType {
   addInvoice: (invoice: Omit<Invoice, "id" | "amountTTC">) => void;
   updateInvoice: (id: string, invoice: Partial<Invoice>) => void;
   deleteInvoice: (id: string) => void;
+
+  addCostGrid: (grid: Omit<CostGrid, "id">) => void;
+  updateCostGrid: (id: string, grid: Partial<CostGrid>) => void;
+  deleteCostGrid: (id: string) => void;
 
   addCost: (cost: Omit<Cost, "id">) => void;
   updateCost: (id: string, cost: Partial<Cost>) => void;
@@ -100,6 +106,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
 
   const [costs, setCosts] = useState<Cost[]>([]);
 
+  const [costGrids, setCostGrids] = useState<CostGrid[]>([]);
+
   const [apiAvailable, setApiAvailable] = useState(true);
   const [unsynced, setUnsynced] = useState(false);
 
@@ -107,6 +115,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     c?: Client[],
     i?: Invoice[],
     co?: Cost[],
+    cg?: CostGrid[],
     dirty?: boolean,
   ) => {
     if (dirty !== undefined) setUnsynced(dirty);
@@ -114,6 +123,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       clients: c ?? clients,
       invoices: i ?? invoices,
       costs: co ?? costs,
+      costGrids: cg ?? costGrids,
       unsynced: dirty ?? unsynced,
     };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
@@ -127,10 +137,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         setUnsynced(storedData.unsynced);
       }
       try {
-        const [cRes, iRes, coRes] = await Promise.all([
+        const [cRes, iRes, coRes, cgRes] = await Promise.all([
           fetch(`${API_URL}/clients`),
           fetch(`${API_URL}/invoices`),
           fetch(`${API_URL}/costs`),
+          fetch(`${API_URL}/costGrids`),
         ]);
 
         if (!cRes.ok) throw new Error("api");
@@ -138,6 +149,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         const clientsData = await cRes.json();
         const invoicesData = await iRes.json();
         const costsData = await coRes.json();
+        const costGridsData = await cgRes.json();
 
         const c = clientsData.map((cl: any) => ({
           ...cl,
@@ -151,6 +163,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         const co = costsData.map((cost: any) => ({
           ...cost,
           date: new Date(cost.date),
+        }));
+        const cg = costGridsData.map((grid: any) => ({
+          ...grid,
         }));
 
         if (storedData?.unsynced) {
@@ -167,21 +182,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
             ...cost,
             date: new Date(cost.date),
           }));
+          const localGrids = storedData.costGrids || [];
 
           setClients(localClients);
           setInvoices(localInvoices);
           setCosts(localCosts);
-          await syncData(localClients, localInvoices, localCosts);
+          setCostGrids(localGrids);
+          await syncData(localClients, localInvoices, localCosts, localGrids);
         } else {
           setClients(c);
           setInvoices(i);
           setCosts(co);
-          persist(c, i, co, false);
+          setCostGrids(cg);
+          persist(c, i, co, cg, false);
         }
       } catch (err) {
         setApiAvailable(false);
         if (storedData) {
-          const { clients: c, invoices: i, costs: co } = storedData;
+          const { clients: c, invoices: i, costs: co, costGrids: cg } = storedData;
           setClients(
             c.map((cl: any) => ({ ...cl, createdAt: new Date(cl.createdAt) })),
           );
@@ -195,6 +213,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
           setCosts(
             co.map((cost: any) => ({ ...cost, date: new Date(cost.date) })),
           );
+          setCostGrids(cg || []);
         }
       }
     };
@@ -220,7 +239,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       newClient.createdAt = new Date(newClient.createdAt);
       setClients((prev) => {
         const updated = [...prev, newClient];
-        persist(updated, undefined, undefined, true);
+        persist(updated, undefined, undefined, undefined, true);
         return updated;
       });
     } catch (e) {
@@ -234,7 +253,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       };
       setClients((prev) => {
         const updated = [...prev, newClient];
-        persist(updated);
+        persist(updated, undefined, undefined, undefined);
         return updated;
       });
     }
@@ -250,21 +269,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       if (!res.ok) throw new Error("api");
       const updated: Client = await res.json();
       updated.createdAt = new Date(updated.createdAt);
-      setClients((prev) => {
-        const updatedList = prev.map((client) =>
-          client.id === id ? updated : client,
-        );
-        persist(updatedList);
-        return updatedList;
-      });
+        setClients((prev) => {
+          const updatedList = prev.map((client) =>
+            client.id === id ? updated : client,
+          );
+          persist(updatedList, undefined, undefined, undefined);
+          return updatedList;
+        });
     } catch (e) {
-      setClients((prev) => {
-        const updatedList = prev.map((client) =>
-          client.id === id ? { ...client, ...updates } : client,
-        );
-        persist(updatedList, undefined, undefined, true);
-        return updatedList;
-      });
+        setClients((prev) => {
+          const updatedList = prev.map((client) =>
+            client.id === id ? { ...client, ...updates } : client,
+          );
+          persist(updatedList, undefined, undefined, undefined, true);
+          return updatedList;
+        });
     }
   };
 
@@ -278,21 +297,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       // offline, just update local data
       setUnsynced(true);
     }
-    setClients((prev) => {
-      const updated = prev.filter((client) => client.id !== id);
-      persist(updated, undefined, undefined, true);
-      return updated;
-    });
-    setInvoices((prev) => {
-      const updated = prev.filter((invoice) => invoice.clientId !== id);
-      persist(undefined, updated, undefined, true);
-      return updated;
-    });
-    setCosts((prev) => {
-      const updated = prev.filter((cost) => cost.clientId !== id);
-      persist(undefined, undefined, updated, true);
-      return updated;
-    });
+      setClients((prev) => {
+        const updated = prev.filter((client) => client.id !== id);
+        persist(updated, undefined, undefined, undefined, true);
+        return updated;
+      });
+      setInvoices((prev) => {
+        const updated = prev.filter((invoice) => invoice.clientId !== id);
+        persist(undefined, updated, undefined, undefined, true);
+        return updated;
+      });
+      setCosts((prev) => {
+        const updated = prev.filter((cost) => cost.clientId !== id);
+        persist(undefined, undefined, updated, undefined, true);
+        return updated;
+      });
   };
 
   // Invoice operations
@@ -307,11 +326,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       const newInvoice: Invoice = await res.json();
       newInvoice.issueDate = new Date(newInvoice.issueDate);
       newInvoice.dueDate = new Date(newInvoice.dueDate);
-      setInvoices((prev) => {
-        const updated = [...prev, newInvoice];
-        persist(undefined, updated);
-        return updated;
-      });
+        setInvoices((prev) => {
+          const updated = [...prev, newInvoice];
+          persist(undefined, updated, undefined, undefined);
+          return updated;
+        });
     } catch (e) {
       const newInvoice: Invoice = {
         id: Date.now().toString(),
@@ -320,11 +339,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         issueDate: invoiceData.issueDate,
         dueDate: invoiceData.dueDate,
       };
-      setInvoices((prev) => {
-        const updated = [...prev, newInvoice];
-        persist(undefined, updated, undefined, true);
-        return updated;
-      });
+        setInvoices((prev) => {
+          const updated = [...prev, newInvoice];
+          persist(undefined, updated, undefined, undefined, true);
+          return updated;
+        });
       setUnsynced(true);
     }
   };
@@ -340,19 +359,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       const updated: Invoice = await res.json();
       updated.issueDate = new Date(updated.issueDate);
       updated.dueDate = new Date(updated.dueDate);
-      setInvoices((prev) => {
-        const updatedList = prev.map((inv) => (inv.id === id ? updated : inv));
-        persist(undefined, updatedList);
-        return updatedList;
-      });
+        setInvoices((prev) => {
+          const updatedList = prev.map((inv) => (inv.id === id ? updated : inv));
+          persist(undefined, updatedList, undefined, undefined);
+          return updatedList;
+        });
     } catch (e) {
-      setInvoices((prev) => {
-        const updatedList = prev.map((inv) =>
-          inv.id === id ? { ...inv, ...updates } : inv,
-        );
-        persist(undefined, updatedList, undefined, true);
-        return updatedList;
-      });
+        setInvoices((prev) => {
+          const updatedList = prev.map((inv) =>
+            inv.id === id ? { ...inv, ...updates } : inv,
+          );
+          persist(undefined, updatedList, undefined, undefined, true);
+          return updatedList;
+        });
       setUnsynced(true);
     }
   };
@@ -367,16 +386,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       // offline
       setUnsynced(true);
     }
-    setInvoices((prev) => {
-      const updated = prev.filter((invoice) => invoice.id !== id);
-      persist(undefined, updated, undefined, true);
-      return updated;
-    });
-    setCosts((prev) => {
-      const updated = prev.filter((cost) => cost.invoiceId !== id);
-      persist(undefined, undefined, updated, true);
-      return updated;
-    });
+      setInvoices((prev) => {
+        const updated = prev.filter((invoice) => invoice.id !== id);
+        persist(undefined, updated, undefined, undefined, true);
+        return updated;
+      });
+      setCosts((prev) => {
+        const updated = prev.filter((cost) => cost.invoiceId !== id);
+        persist(undefined, undefined, updated, undefined, true);
+        return updated;
+      });
   };
 
   // Cost operations
@@ -390,18 +409,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       if (!res.ok) throw new Error("api");
       const newCost: Cost = await res.json();
       newCost.date = new Date(newCost.date);
-      setCosts((prev) => {
-        const updated = [...prev, newCost];
-        persist(undefined, undefined, updated);
-        return updated;
-      });
+        setCosts((prev) => {
+          const updated = [...prev, newCost];
+          persist(undefined, undefined, updated, undefined);
+          return updated;
+        });
     } catch (e) {
       const newCost: Cost = { id: Date.now().toString(), ...costData };
-      setCosts((prev) => {
-        const updated = [...prev, newCost];
-        persist(undefined, undefined, updated, true);
-        return updated;
-      });
+        setCosts((prev) => {
+          const updated = [...prev, newCost];
+          persist(undefined, undefined, updated, undefined, true);
+          return updated;
+        });
       setUnsynced(true);
     }
   };
@@ -416,21 +435,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       if (!res.ok) throw new Error("api");
       const updated: Cost = await res.json();
       updated.date = new Date(updated.date);
-      setCosts((prev) => {
-        const updatedList = prev.map((cost) =>
-          cost.id === id ? updated : cost,
-        );
-        persist(undefined, undefined, updatedList);
-        return updatedList;
-      });
+        setCosts((prev) => {
+          const updatedList = prev.map((cost) =>
+            cost.id === id ? updated : cost,
+          );
+          persist(undefined, undefined, updatedList, undefined);
+          return updatedList;
+        });
     } catch (e) {
-      setCosts((prev) => {
-        const updatedList = prev.map((cost) =>
-          cost.id === id ? { ...cost, ...updates } : cost,
-        );
-        persist(undefined, undefined, updatedList, true);
-        return updatedList;
-      });
+        setCosts((prev) => {
+          const updatedList = prev.map((cost) =>
+            cost.id === id ? { ...cost, ...updates } : cost,
+          );
+          persist(undefined, undefined, updatedList, undefined, true);
+          return updatedList;
+        });
       setUnsynced(true);
     }
   };
@@ -445,9 +464,77 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       // offline
       setUnsynced(true);
     }
-    setCosts((prev) => {
-      const updated = prev.filter((cost) => cost.id !== id);
-      persist(undefined, undefined, updated, true);
+      setCosts((prev) => {
+        const updated = prev.filter((cost) => cost.id !== id);
+        persist(undefined, undefined, updated, undefined, true);
+        return updated;
+      });
+  };
+
+  // Cost grid operations
+  const addCostGrid = async (gridData: Omit<CostGrid, "id">) => {
+    try {
+      const res = await fetch(`${API_URL}/costGrids`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...AUTH_HEADER },
+        body: JSON.stringify(gridData),
+      });
+      if (!res.ok) throw new Error("api");
+      const newGrid: CostGrid = await res.json();
+      setCostGrids((prev) => {
+        const updated = [...prev, newGrid];
+        persist(undefined, undefined, undefined, updated);
+        return updated;
+      });
+    } catch (e) {
+      const newGrid: CostGrid = { id: Date.now().toString(), ...gridData };
+      setCostGrids((prev) => {
+        const updated = [...prev, newGrid];
+        persist(undefined, undefined, undefined, updated, true);
+        return updated;
+      });
+      setUnsynced(true);
+    }
+  };
+
+  const updateCostGrid = async (id: string, updates: Partial<CostGrid>) => {
+    try {
+      const res = await fetch(`${API_URL}/costGrids/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...AUTH_HEADER },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error("api");
+      const updatedGrid: CostGrid = await res.json();
+      setCostGrids((prev) => {
+        const updatedList = prev.map((g) => (g.id === id ? updatedGrid : g));
+        persist(undefined, undefined, undefined, updatedList);
+        return updatedList;
+      });
+    } catch (e) {
+      setCostGrids((prev) => {
+        const updatedList = prev.map((g) =>
+          g.id === id ? { ...g, ...updates } : g,
+        );
+        persist(undefined, undefined, undefined, updatedList, true);
+        return updatedList;
+      });
+      setUnsynced(true);
+    }
+  };
+
+  const deleteCostGrid = async (id: string) => {
+    try {
+      await fetch(`${API_URL}/costGrids/${id}`, {
+        method: "DELETE",
+        headers: AUTH_HEADER,
+      });
+    } catch (e) {
+      setUnsynced(true);
+    }
+    setCostGrids((prev) => {
+      const updated = prev.filter((g) => g.id !== id);
+      persist(undefined, undefined, undefined, updated, true);
       return updated;
     });
   };
@@ -744,22 +831,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
       c: Client[] = clients,
       i: Invoice[] = invoices,
       co: Cost[] = costs,
+      cg: CostGrid[] = costGrids,
     ): Promise<void> => {
       try {
         await fetch(`${API_URL}/sync`, {
           method: "POST",
           headers: { "Content-Type": "application/json", ...AUTH_HEADER },
-          body: JSON.stringify({ clients: c, invoices: i, costs: co }),
+          body: JSON.stringify({ clients: c, invoices: i, costs: co, costGrids: cg }),
         });
-        persist(c, i, co, false);
+        persist(c, i, co, cg, false);
         setApiAvailable(true);
       } catch (e) {
         console.error("Sync failed", e);
         setApiAvailable(false);
-        persist(c, i, co, true);
+        persist(c, i, co, cg, true);
       }
     },
-    [clients, invoices, costs],
+    [clients, invoices, costs, costGrids],
   );
 
   useEffect(() => {
@@ -791,6 +879,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     clients,
     invoices,
     costs,
+    costGrids,
     addClient,
     updateClient,
     deleteClient,
@@ -800,6 +889,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     addCost,
     updateCost,
     deleteCost,
+    addCostGrid,
+    updateCostGrid,
+    deleteCostGrid,
     getMonthlyData,
     getTotalRevenue,
     getTotalCosts,
