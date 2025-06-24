@@ -3,14 +3,13 @@ import { format } from 'date-fns';
 import { Plus, Search, DollarSign, Users, FileText, Truck, Wrench, BarChart3, Home, Building2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import CostForm from './CostForm';
-import CostGridsManager from './CostGridsManager';
 import { Cost } from '../../types';
 
 const CostsManager: React.FC = () => {
   const { costs, invoices, clients, currentUser, deleteCost } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [clientFilter, setClientFilter] = useState<string>('');
+  const [clientFilter, setClientFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingCost, setEditingCost] = useState<Cost | null>(null);
   const [openClients, setOpenClients] = useState<Record<string, boolean>>({});
@@ -96,7 +95,6 @@ const CostsManager: React.FC = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <CostGridsManager />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">🟦 Gestion des Coûts</h1>
