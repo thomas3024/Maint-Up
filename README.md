@@ -62,6 +62,30 @@ La barre latérale donne accès aux différentes pages :
 
 Ce projet inclut un fichier `vercel.json` qui associe automatiquement l'application au domaine https://maint-up.vercel.app lors du déploiement.
 
+Pour récupérer les variables d'environnement ou déclencher une prévisualisation
+avec Vercel, installez d'abord l'outil en ligne de commande :
+
+```bash
+npm install -g vercel
+```
+
+Connectez ensuite le dépôt à votre compte Vercel :
+
+```bash
+vercel login
+vercel link
+```
+
+Une fois le projet lié, vous pouvez extraire les variables définies dans Vercel
+à l'aide de :
+
+```bash
+vercel env pull .env
+```
+
+Cette commande recréera un fichier `.env` local et permettra à nouveau de faire
+des demandes d'extraction ou des déploiements comme auparavant.
+
 ## Sécurisation de l'API
 
 Le serveur Express peut être protégé par un jeton d'API. Définissez la variable
