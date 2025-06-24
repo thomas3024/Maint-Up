@@ -6,9 +6,10 @@ import InvoicesMonthlyChart from './InvoicesMonthlyChart';
 import { Invoice } from '../../types';
 
 const InvoicesManager: React.FC = () => {
-  const { invoices, currentUser, updateInvoice, deleteInvoice } = useAppContext();
+  const { invoices, currentUser, updateInvoice, deleteInvoice, clients } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
+  const [clientFilter, setClientFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
@@ -16,10 +17,11 @@ const InvoicesManager: React.FC = () => {
     const matchesSearch = invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          invoice.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+    const matchesClient = clientFilter === 'all' || invoice.clientId === clientFilter;
+
+    return matchesSearch && matchesStatus && matchesClient;
   });
 
   const handleStatusChange = (invoiceId: string, newStatus: 'pending' | 'paid' | 'overdue') => {
@@ -167,7 +169,7 @@ const InvoicesManager: React.FC = () => {
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
-        
+
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -177,6 +179,19 @@ const InvoicesManager: React.FC = () => {
           <option value="pending">🟥 En attente</option>
           <option value="paid">🟩 Payées</option>
           <option value="overdue">🟥 En retard</option>
+        </select>
+
+        <select
+          value={clientFilter}
+          onChange={(e) => setClientFilter(e.target.value)}
+          className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        >
+          <option value="all">Tous les clients</option>
+          {clients.map((client) => (
+            <option key={client.id} value={client.id}>
+              {client.name}
+            </option>
+          ))}
         </select>
       </div>
 
